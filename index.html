@@ -733,6 +733,27 @@ order.items.forEach(item => {
     }, 30000);
     const name = localStorage.getItem("userName");
 document.write("Welcome, " + name);
+
+
+
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  
+  // Add order to sheet
+  sheet.appendRow([
+    data.orderNumber,
+    data.customerName,
+    data.tableNumber,
+    JSON.stringify(data.items),
+    data.total,
+    data.date,
+    data.time,
+    'Pending'
+  ]);
+  
+  return ContentService.createTextOutput('Success');
+}
   </script>
 </body>
 </html>
