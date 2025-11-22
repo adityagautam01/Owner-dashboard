@@ -564,7 +564,7 @@
 
 function loadOrders() {
     // API URL check karein
-    fetch('http://localhost:3000/api/orders') 
+    fetch('https://mrt-cafe-api.onrender.com') 
     .then(response => {
         if (!response.ok) {
             throw new Error('Failed to fetch orders.');
@@ -701,53 +701,6 @@ function loadOrders() {
       });
     }
 
-    // Confirm order
-    // function confirmOrder(index) {
-    //   if (confirm('Confirm this order?')) {
-    //     allOrders[index].confirmed = true;
-    //     allOrders[index].confirmedAt = new Date().toLocaleString();
-    //     saveOrders();
-    //     displayOrders();
-    //     updateStats();
-    //   }
-    // }
-
-
-    // Owner-dashboard.html mein confirmOrder() function ko isse replace karein
-
-// function confirmOrder(index) {
-//     if (confirm('Confirm this order?')) {
-//         const orderToUpdate = allOrders[index];
-//         const orderId = orderToUpdate.id; // Assuming each order has a unique 'id' from the database
-        
-//         // Server par data update karein
-//         // fetch(`YOUR_BACKEND_API_URL/api/orders/${orderId}/confirm`, { // <--- 🔑 CHANGE THIS API URL
-//         //     method: 'PUT',
-            
-//             fetch(`http://localhost:3000/api/orders/${orderId}/confirm`, { // <-- Yahan dusra fetch shuru ho gaya
-//             headers: {
-            
-//                 'Content-Type': 'application/json',
-//             },
-//             // Agar aap confirmedAt time server par set kar rahe hain toh body mein kuch na bhejein
-//             body: JSON.stringify({ confirmed: true })
-//         })
-//         .then(response => {
-//             if (!response.ok) {
-//                 throw new Error('Failed to confirm order.');
-//             }
-//             // Agar success ho toh, front-end data ko update karein aur reload karein
-//             // Better practice: loadOrders() ko call karein for fresh data.
-//             loadOrders(); 
-//         })
-//         .catch(error => {
-//             console.error('Confirm Order Error:', error);
-//             alert('Error confirming order: ' + error.message);
-//         });
-//     }
-// }
-
-
 function confirmOrder(index) {
     if (confirm('Confirm this order?')) {
         const orderToUpdate = allOrders[index];
@@ -755,7 +708,7 @@ function confirmOrder(index) {
         const orderId = orderToUpdate.id; 
         
         // 1. Server par data update karein
-        fetch(`http://localhost:3000/api/orders/${orderId}/confirm`, { // <-- Correct URL
+        fetch(`https://mrt-cafe-api.onrender.com`, { // <-- Correct URL
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -778,46 +731,6 @@ function confirmOrder(index) {
         });
     }
 }
-    // Delete order
-    // function deleteOrder(index) {
-    //   if (confirm('Are you sure you want to delete this order?')) {
-    //     allOrders.splice(index, 1);
-    //     saveOrders();
-    //     displayOrders();
-    //     updateStats();
-    //   }
-    // }
-
-
-
-    // Owner-dashboard.html mein deleteOrder() function ko isse replace karein
-
-// function deleteOrder(index) {
-//     if (confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
-//         const orderToDelete = allOrders[index];
-//         const orderId = orderToDelete.id; // Assuming each order has a unique 'id' from the database
-
-//         // Server ko delete request bhejein
-//         // fetch(`YOUR_BACKEND_API_URL/api/orders/${orderId}`, { // <--- 🔑 CHANGE THIS API URL
-//         //     method: 'DELETE',
-//             fetch(`http://localhost:3000/api/orders/${orderId}/confirm`, { // <-- Yahan dusra fetch galat tareeqe se shuru ho gaya
-//             headers: { // <-- Headers key ka koi value nahi hai
-//         })
-//         })
-//         .then(response => {
-//             if (!response.ok) {
-//                 throw new Error('Failed to delete order.');
-//             }
-//             // Agar success ho toh, loadOrders() ko call karein for fresh data.
-//             loadOrders();
-//         })
-//         .catch(error => {
-//             console.error('Delete Order Error:', error);
-//             alert('Error deleting order: ' + error.message);
-//         });
-//     }
-// }
-
 // **Owner-dashboard.html** mein ye code use karein:
 
 function deleteOrder(index) {
@@ -827,7 +740,7 @@ function deleteOrder(index) {
         const orderId = orderToDelete.id; 
 
         // Server ko DELETE request bhejein (Correct syntax aur URL ke saath)
-        fetch(`http://localhost:3000/api/orders/${orderId}`, {
+        fetch(`https://mrt-cafe-api.onrender.com`, {
             method: 'DELETE', // Sirf method set karna kaafi hai DELETE request ke liye
             // Headers ki zaroorat nahi hai agar body mein data nahi bhej rahe hain
         })
