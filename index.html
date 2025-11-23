@@ -564,7 +564,9 @@
 
 function loadOrders() {
     // API URL check karein
-    fetch('https://mrt-cafe-api.onrender.com') 
+    // fetch('https://mrt-cafe-api.onrender.com') 
+    fetch('https://mrt-cafe-api.onrender.com/api/orders') 
+    // ...
     .then(response => {
         if (!response.ok) {
             throw new Error('Failed to fetch orders.');
@@ -708,7 +710,7 @@ function confirmOrder(index) {
         const orderId = orderToUpdate.id; 
         
         // 1. Server par data update karein
-        fetch(`https://mrt-cafe-api.onrender.com`, { // <-- Correct URL
+        fetch(`https://mrt-cafe-api.onrender.com/api/orders/${orderId}/confirm`, { // <-- Correct URL
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -740,7 +742,7 @@ function deleteOrder(index) {
         const orderId = orderToDelete.id; 
 
         // Server ko DELETE request bhejein (Correct syntax aur URL ke saath)
-        fetch(`https://mrt-cafe-api.onrender.com`, {
+        fetch(`https://mrt-cafe-api.onrender.com/api/orders/${orderId}`, {
             method: 'DELETE', // Sirf method set karna kaafi hai DELETE request ke liye
             // Headers ki zaroorat nahi hai agar body mein data nahi bhej rahe hain
         })
