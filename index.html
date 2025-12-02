@@ -37,7 +37,6 @@
       text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
     }
 
-    /* Login Screen */
     .login-container {
       display: flex;
       justify-content: center;
@@ -115,7 +114,6 @@
       display: block;
     }
 
-    /* Dashboard */
     .dashboard {
       display: none;
       max-width: 1200px;
@@ -335,8 +333,8 @@
       cursor: not-allowed;
     }
 
-    .delete-order-btn {
-      background: #dc3545;
+    .download-order-btn {
+      background: #007bff;
       color: white;
       border: none;
       padding: 12px 20px;
@@ -347,8 +345,8 @@
       font-weight: bold;
     }
 
-    .delete-order-btn:hover {
-      background: #c82333;
+    .download-order-btn:hover {
+      background: #0056b3;
       transform: translateY(-2px);
     }
 
@@ -420,12 +418,11 @@
   </style>
 </head>
 <body>
-  <a href="index.HTML" class="back-to-menu" id="backToMenu">←</a>
+  <a href="index.html" class="back-to-menu" id="backToMenu">←</a>
 
   <h1>🍽️ MR.T Cafe</h1>
   <p class="tagline">Owner Dashboard</p>
 
-  <!-- Login Screen -->
   <div class="login-container" id="loginContainer">
     <div class="login-box">
       <h2>🔒 Owner Access</h2>
@@ -438,7 +435,6 @@
     </div>
   </div>
 
-  <!-- Dashboard -->
   <div class="dashboard" id="dashboard">
     <div class="dashboard-header">
       <div class="stats">
@@ -480,39 +476,34 @@
   </div>
 
   <script>
-    const OWNER_PASSWORD = '5555'; // 🔐 Change this password as needed
+    const OWNER_PASSWORD = '5555';
     const SESSION_KEY = 'mrtCafeOwnerSession';
-    const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    const SESSION_DURATION = 24 * 60 * 60 * 1000;
     
     let allOrders = [];
     let currentFilter = 'all';
 
-    // Check if already logged in
     function checkSession() {
       const session = localStorage.getItem(SESSION_KEY);
       if (session) {
         const sessionData = JSON.parse(session);
         const now = Date.now();
         
-        // Check if session is still valid (within 24 hours)
         if (now - sessionData.timestamp < SESSION_DURATION) {
           showDashboard();
           return true;
         } else {
-          // Session expired
           localStorage.removeItem(SESSION_KEY);
         }
       }
       return false;
     }
 
-    // Login function
     function login() {
       const password = document.getElementById('ownerPassword').value;
       const errorDiv = document.getElementById('loginError');
       
       if (password === OWNER_PASSWORD) {
-        // Create session
         const sessionData = {
           timestamp: Date.now()
         };
@@ -526,7 +517,6 @@
       }
     }
 
-    // Logout function
     function logout() {
       localStorage.removeItem(SESSION_KEY);
       document.getElementById('loginContainer').style.display = 'flex';
@@ -535,7 +525,6 @@
       document.getElementById('ownerPassword').value = '';
     }
 
-    // Show dashboard
     function showDashboard() {
       document.getElementById('loginContainer').style.display = 'none';
       document.getElementById('dashboard').classList.add('active');
@@ -545,65 +534,24 @@
       updateStats();
     }
 
-    // Load orders from localStorage
-    // function loadOrders() {
-    //   const stored = localStorage.getItem('mrtCafeOrders');
-    //   if (stored) {
-    //     try {
-    //       const data = JSON.parse(stored);
-    //       allOrders = data.orders || [];
-    //     } catch (e) {
-    //       allOrders = [];
-    //     }
-    //   }
-    // }
-
-
-    // Owner-dashboard.html mein loadOrders() function ko isse replace karein
-// Owner-dashboard.html ke script tag mein loadOrders() function
-
-function loadOrders() {
-    // API URL check karein
-    // fetch('https://mrt-cafe-api.onrender.com') 
-    fetch('https://mrt-cafe-api.onrender.com/api/orders') 
-    // ...
-    .then(response => {
-        if (!response.ok) {
+    function loadOrders() {
+      fetch('https://mrt-cafe-api.onrender.com/api/orders') 
+        .then(response => {
+          if (!response.ok) {
             throw new Error('Failed to fetch orders.');
-        }
-        return response.json();
-    })
-    .then(data => {
-        // Data structure check karein: Server se 'orders' array milna chahiye
-        allOrders = data.orders || []; 
-        displayOrders(); 
-        updateStats(); 
-    })
-    .catch(error => {
-        console.error('Loading Orders Error:', error);
-        // ... Error display logic ...
-    });
-}
-// NOTE: saveOrders() function ko delete kar dein, kyunki ab data server par save hoga.
-
-    // Save orders to localStorage
-    function saveOrders() {
-      const stored = localStorage.getItem('mrtCafeOrders');
-      let counter = 1;
-      if (stored) {
-        try {
-          const data = JSON.parse(stored);
-          counter = data.counter || 1;
-        } catch (e) {}
-      }
-      
-      localStorage.setItem('mrtCafeOrders', JSON.stringify({
-        orders: allOrders,
-        counter: counter
-      }));
+          }
+          return response.json();
+        })
+        .then(data => {
+          allOrders = data.orders || []; 
+          displayOrders(); 
+          updateStats(); 
+        })
+        .catch(error => {
+          console.error('Loading Orders Error:', error);
+        });
     }
 
-    // Update statistics
     function updateStats() {
       const totalOrders = allOrders.length;
       const pending = allOrders.filter(o => !o.confirmed).length;
@@ -616,11 +564,9 @@ function loadOrders() {
       document.getElementById('totalRevenue').textContent = `₹${totalRevenue}`;
     }
 
-    // Filter orders
     function filterOrders(filter) {
       currentFilter = filter;
       
-      // Update active tab
       document.querySelectorAll('.filter-tab').forEach(tab => {
         tab.classList.remove('active');
       });
@@ -629,7 +575,6 @@ function loadOrders() {
       displayOrders();
     }
 
-    // Display orders
     function displayOrders() {
       const ordersBody = document.getElementById('ordersBody');
       
@@ -653,7 +598,6 @@ function loadOrders() {
 
       ordersBody.innerHTML = '';
       
-      // Display orders in reverse order (newest first)
       [...filteredOrders].reverse().forEach((order, index) => {
         const originalIndex = allOrders.indexOf(order);
         const orderCard = document.createElement('div');
@@ -695,7 +639,7 @@ function loadOrders() {
           <div class="order-total">Total: ₹${order.total}</div>
           <div class="order-actions">
             ${confirmButton}
-            <button class="delete-order-btn" onclick="deleteOrder(${originalIndex})">🗑️ Delete</button>
+            <button class="download-order-btn" onclick="downloadOrder(${originalIndex})">📄 Download Order</button>
           </div>
         `;
         
@@ -703,67 +647,165 @@ function loadOrders() {
       });
     }
 
-function confirmOrder(index) {
-    if (confirm('Confirm this order?')) {
+    function confirmOrder(index) {
+      if (confirm('Confirm this order?')) {
         const orderToUpdate = allOrders[index];
-        // Ensure the order has an 'id' property (which it gets from the backend)
         const orderId = orderToUpdate.id; 
         
-        // 1. Server par data update karein
-        fetch(`https://mrt-cafe-api.onrender.com/api/orders/${orderId}/confirm`, { // <-- Correct URL
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            // Server ko batana ki order confirm ho gaya hai
-            body: JSON.stringify({ confirmed: true })
+        fetch(`https://mrt-cafe-api.onrender.com/api/orders/${orderId}/confirm`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ confirmed: true })
         })
         .then(response => {
-            if (!response.ok) {
-                // Agar status code 200/201 nahi hai
-                throw new Error('Failed to confirm order. Server returned status ' + response.status);
-            }
-            // Response ko JSON mein parse karne ki zaroorat nahi agar server sirf success message bhej raha hai
-            // Agar success ho toh, loadOrders() ko call karein for fresh data.
-            loadOrders(); 
+          if (!response.ok) {
+            throw new Error('Failed to confirm order. Server returned status ' + response.status);
+          }
+          loadOrders(); 
         })
         .catch(error => {
-            console.error('Confirm Order Error:', error);
-            alert('Error confirming order: ' + error.message);
+          console.error('Confirm Order Error:', error);
+          alert('Error confirming order: ' + error.message);
         });
+      }
     }
-}
-// **Owner-dashboard.html** mein ye code use karein:
 
-function deleteOrder(index) {
-    if (confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
-        const orderToDelete = allOrders[index];
-        // Assuming each order has a unique 'id' from the database
-        const orderId = orderToDelete.id; 
+    function downloadOrder(index) {
+      const order = allOrders[index];
+      
+      // Create HTML content for printing
+      let itemsHTML = '';
+      order.items.forEach(item => {
+        itemsHTML += `
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.name}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center;">${item.quantity}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">₹${item.price}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">₹${item.total}</td>
+          </tr>
+        `;
+      });
 
-        // Server ko DELETE request bhejein (Correct syntax aur URL ke saath)
-        fetch(`https://mrt-cafe-api.onrender.com/api/orders/${orderId}`, {
-            method: 'DELETE', // Sirf method set karna kaafi hai DELETE request ke liye
-            // Headers ki zaroorat nahi hai agar body mein data nahi bhej rahe hain
-        })
-        .then(response => {
-            if (!response.ok) {
-                // Agar status code 200/204 nahi hai
-                throw new Error('Failed to delete order. Server returned status ' + response.status);
+      const printContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Order #${order.orderNumber} - MR.T Cafe</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              padding: 20px;
+              max-width: 800px;
+              margin: 0 auto;
             }
-            // Success hone par orders ko dobara load karein (to refresh the dashboard)
-            loadOrders();
-        })
-        .catch(error => {
-            console.error('Delete Order Error:', error);
-            alert('Error deleting order: ' + error.message);
-        });
-    }
-}
+            .header {
+              text-align: center;
+              margin-bottom: 30px;
+              border-bottom: 3px solid #f5576c;
+              padding-bottom: 20px;
+            }
+            .header h1 {
+              color: #f5576c;
+              margin-bottom: 5px;
+            }
+            .order-info {
+              background: #f8f9fa;
+              padding: 15px;
+              border-radius: 8px;
+              margin-bottom: 20px;
+            }
+            .order-info p {
+              margin: 5px 0;
+              font-size: 14px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+            }
+            th {
+              background: #f5576c;
+              color: white;
+              padding: 10px;
+              text-align: left;
+            }
+            .total-section {
+              text-align: right;
+              font-size: 18px;
+              font-weight: bold;
+              padding: 15px;
+              background: #f8f9fa;
+              border-radius: 8px;
+            }
+            .footer {
+              text-align: center;
+              margin-top: 30px;
+              padding-top: 20px;
+              border-top: 2px solid #ddd;
+              color: #666;
+              font-size: 12px;
+            }
+            @media print {
+              body {
+                padding: 0;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>🍽️ MR.T Cafe</h1>
+            <p>Order Receipt</p>
+          </div>
+          
+          <div class="order-info">
+            <p><strong>Order Number:</strong> #${order.orderNumber}</p>
+            <p><strong>Date & Time:</strong> ${order.date} ${order.time}</p>
+            <p><strong>Customer Name:</strong> ${order.customerName}</p>
+            <p><strong>Table Number:</strong> ${order.tableNumber}</p>
+            <p><strong>Status:</strong> ${order.confirmed ? 'Confirmed ✓' : 'Pending ⏳'}</p>
+          </div>
 
-    // Enter key for password
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th style="text-align: center;">Quantity</th>
+                <th style="text-align: right;">Price</th>
+                <th style="text-align: right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHTML}
+            </tbody>
+          </table>
+
+          <div class="total-section">
+            <p>Total Amount: ₹${order.total}</p>
+          </div>
+
+          <div class="footer">
+            <p>Thank you for your order!</p>
+            <p>MR.T Cafe - Quality Food, Great Service</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      // Create a new window for printing
+      const printWindow = window.open('', '', 'width=800,height=600');
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      
+      // Wait for content to load then print
+      printWindow.onload = function() {
+        printWindow.print();
+      };
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
-      // Check if already logged in
       if (!checkSession()) {
         document.getElementById('loginContainer').style.display = 'flex';
       }
@@ -775,7 +817,6 @@ function deleteOrder(index) {
       });
     });
 
-    // Auto-refresh orders every 30 seconds if logged in
     setInterval(() => {
       const session = localStorage.getItem(SESSION_KEY);
       if (session && document.getElementById('dashboard').classList.contains('active')) {
