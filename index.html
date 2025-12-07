@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Owner Dashboard - MR.T Cafe</title>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
   <style>
     * {
       margin: 0;
@@ -37,6 +41,7 @@
       text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
     }
 
+    /* Login Screen */
     .login-container {
       display: flex;
       justify-content: center;
@@ -114,6 +119,7 @@
       display: block;
     }
 
+    /* Dashboard */
     .dashboard {
       display: none;
       max-width: 1200px;
@@ -169,6 +175,29 @@
     .logout-btn:hover {
       background: #c82333;
       transform: translateY(-2px);
+    }
+    
+    /* NEW: Add Item Button */
+    .add-item-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      margin-left: 20px;
+    }
+
+    .add-item-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(118, 75, 162, 0.4);
+    }
+    
+    .dashboard-actions {
+        display: flex;
+        align-items: center;
     }
 
     .orders-container {
@@ -293,6 +322,11 @@
     .order-item-row:last-child {
       border-bottom: none;
     }
+    
+    .delivery-charge-row {
+        color: #dc3545;
+        font-weight: bold;
+    }
 
     .order-total {
       font-size: 1.3rem;
@@ -331,6 +365,23 @@
     .confirm-order-btn.confirmed {
       background: #6c757d;
       cursor: not-allowed;
+    }
+    
+    .delete-order-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      font-weight: bold;
+    }
+
+    .delete-order-btn:hover {
+      background: #c82333;
+      transform: translateY(-2px);
     }
 
     .download-order-btn {
@@ -388,6 +439,117 @@
       box-shadow: 0 12px 32px rgba(102, 126, 234, 0.7);
     }
 
+    .loading-spinner {
+        text-align: center;
+        padding: 40px;
+        color: #f5576c;
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+    
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 450px;
+        padding: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+    
+    .modal-content h2 {
+        text-align: center;
+        color: #f5576c;
+        margin-bottom: 20px;
+    }
+    
+    .modal-content label {
+        display: block;
+        font-weight: bold;
+        color: #555;
+        margin-bottom: 5px;
+        margin-top: 10px;
+    }
+    
+    .modal-content input, .modal-content select {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .modal-content input:focus, .modal-content select:focus {
+        outline: none;
+        border-color: #f5576c;
+    }
+    
+    .modal-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .modal-actions button {
+        flex-grow: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    
+    .cancel-btn {
+        background: #f0f0f0;
+        color: #333;
+    }
+    
+    .add-btn {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+    
+    .add-btn:hover {
+        background: linear-gradient(135deg, #218838, #1e9a7e);
+    }
+    
+    .item-status-message {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      text-align: center;
+      font-weight: bold;
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: none;
+    }
+    
+    .item-status-message.error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
     @media (max-width: 768px) {
       body {
         padding: 10px;
@@ -400,6 +562,22 @@
       .dashboard-header {
         flex-direction: column;
         gap: 20px;
+      }
+      
+      .dashboard-actions {
+          width: 100%;
+          justify-content: space-between;
+      }
+      
+      .logout-btn {
+          flex: 1;
+          max-width: 100px;
+      }
+      
+      .add-item-btn {
+          flex: 1;
+          max-width: 150px;
+          margin-left: 0;
       }
 
       .stats {
@@ -418,7 +596,7 @@
   </style>
 </head>
 <body>
-  <a href="index.html" class="back-to-menu" id="backToMenu">←</a>
+  <a href="index.html" class="back-to-menu" id="backToMenu">← Menu</a>
 
   <h1>🍽️ MR.T Cafe</h1>
   <p class="tagline">Owner Dashboard</p>
@@ -434,6 +612,32 @@
       <button class="login-btn" onclick="login()">Login</button>
     </div>
   </div>
+
+  <div class="modal" id="addItemModal">
+        <div class="modal-content">
+            <h2>➕ Add New Menu Item</h2>
+            <form id="addItemForm">
+                <label for="newItemName">Item Name:</label>
+                <input type="text" id="newItemName" placeholder="e.g., Spicy Chicken Wings" required>
+                
+                <label for="newItemPrice">Price (₹):</label>
+                <input type="number" id="newItemPrice" placeholder="e.g., 120" min="1" required>
+                
+                <label for="newItemCategoryName">Category Name:</label>
+                <select id="newItemCategoryName" required>
+                    <option value="" disabled selected>Select or type a category...</option>
+                    </select>
+                
+                <div class="item-status-message" id="itemStatusMessage"></div>
+
+                <div class="modal-actions">
+                    <button type="button" class="cancel-btn" onclick="showAddItemModal(false)">Cancel</button>
+                    <button type="submit" class="add-btn">Add Item to Menu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
   <div class="dashboard" id="dashboard">
     <div class="dashboard-header">
@@ -455,34 +659,212 @@
           <div class="stat-label">Total Revenue</div>
         </div>
       </div>
-      <button class="logout-btn" onclick="logout()">Logout</button>
+      <div class="dashboard-actions">
+          <button class="add-item-btn" onclick="showAddItemModal(true)">➕ Add New Item</button>
+          <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
     </div>
 
     <div class="orders-container">
       <div class="filter-tabs">
-        <button class="filter-tab active" onclick="filterOrders('all')">All Orders</button>
-        <button class="filter-tab" onclick="filterOrders('pending')">Pending</button>
-        <button class="filter-tab" onclick="filterOrders('confirmed')">Confirmed</button>
+        <button class="filter-tab active" onclick="filterOrders(event, 'all')">All Orders</button>
+        <button class="filter-tab" onclick="filterOrders(event, 'pending')">Pending</button>
+        <button class="filter-tab" onclick="filterOrders(event, 'confirmed')">Confirmed</button>
       </div>
       
       <div id="ordersBody">
-        <div class="empty-orders">
-          <div class="empty-orders-icon">📋</div>
-          <p>No orders yet</p>
-          <p style="font-size: 0.9rem; margin-top: 5px;">Orders will appear here once customers place them</p>
-        </div>
+        <div class="loading-spinner">Loading orders... 🔄</div>
       </div>
     </div>
   </div>
 
-  <script>
-    const OWNER_PASSWORD = '5555';
+   <script>
+    const OWNER_PASSWORD = '5555'; // 🔐 Change this password as needed
+    const API_BASE_URL = 'https://mrt-cafe-api.onrender.com/api/orders'; // Server API Endpoint
+    const MENU_API_URL = 'https://mrt-cafe-api.onrender.com/api/menu'; // NEW: Menu API Endpoint
     const SESSION_KEY = 'mrtCafeOwnerSession';
-    const SESSION_DURATION = 24 * 60 * 60 * 1000;
+    const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
     
     let allOrders = [];
     let currentFilter = 'all';
+    
+    // List of Categories from index.html (Manually maintained for now)
+    const predefinedCategories = [
+        { name: 'Chai Shai', emoji: '☕' },
+        { name: 'Coffee', emoji: '☕' },
+        { name: 'Shakes', emoji: '🥤' },
+        { name: 'Ice Tea', emoji: '🧊' },
+        { name: 'Mocktails', emoji: '🹠' },
+        { name: 'Soft Drinks', emoji: '🥤' },
+        { name: 'Soups', emoji: '🲠' },
+        { name: 'Maggie', emoji: '🜠' },
+        { name: 'Sandwiches', emoji: '🥪' },
+        { name: 'Momos', emoji: '🥟' },
+        { name: 'Burger', emoji: '🍔' },
+        { name: 'Corn', emoji: '🌽' },
+        { name: 'Pasta', emoji: '🍝' },
+        { name: 'Fries', emoji: '🍟' },
+        { name: 'Pizza', emoji: '🍕' },
+        { name: 'Wraps', emoji: '🌯' },
+        { name: 'Morning Masala', emoji: '🌅' },
+        { name: 'Parantha', emoji: '🫓' },
+        { name: 'Pakoda', emoji: '🥘' },
+        { name: 'Indian Khajana', emoji: '🍛' },
+        { name: 'Rice', emoji: '🍚' },
+        { name: 'Bread', emoji: '🍞' },
+        { name: 'Salads & Raita', emoji: '🥗' },
+        { name: 'Noodles', emoji: '🍜' },
+        { name: 'Chinese Rice', emoji: '🍚' },
+        { name: 'Flavors of Kanpur', emoji: '🌶️' },
+        { name: 'Rice Meal', emoji: '🍱' },
+        { name: 'Thali', emoji: '🍽️' },
+        { name: 'Eco Meal', emoji: '🍱' },
+        { name: 'Chinese Combo', emoji: '🥡' },
+        { name: 'South Indian', emoji: '🥡' },
+        { name: 'Desserts', emoji: '🍰' }
+    ];
 
+    // Helper function to find order by ID
+    function findOrderById(orderId) {
+        return allOrders.find(order => order.id === orderId);
+    }
+    
+    // Function to populate the category dropdown in the Add Item Modal
+    function populateCategorySelector() {
+        const selector = document.getElementById('newItemCategoryName');
+        // Clear previous options except the default 'Select'
+        selector.innerHTML = '<option value="" disabled selected>Select a category...</option>'; 
+        
+        predefinedCategories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat.name;
+            option.textContent = `${cat.emoji} ${cat.name}`;
+            selector.appendChild(option);
+        });
+    }
+
+    // Toggle Add Item Modal
+    function showAddItemModal(show) {
+        const modal = document.getElementById('addItemModal');
+        const form = document.getElementById('addItemForm');
+        const statusDiv = document.getElementById('itemStatusMessage');
+
+        if (show) {
+            populateCategorySelector();
+            form.reset();
+            statusDiv.style.display = 'none';
+            statusDiv.classList.remove('error');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        } else {
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+    }
+    
+    // Function to show a temporary status message in the modal
+    function showItemStatus(message, isError = false) {
+      const statusDiv = document.getElementById('itemStatusMessage');
+      statusDiv.textContent = message;
+      statusDiv.classList.toggle('error', isError);
+      statusDiv.style.display = 'block';
+      
+      setTimeout(() => {
+        statusDiv.style.display = 'none';
+      }, 7000); // Increased time for better visibility of the error
+    }
+
+    // Function to handle adding a new item via API
+    document.getElementById('addItemForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        addItemToMenu();
+    });
+
+    function addItemToMenu() {
+        const name = document.getElementById('newItemName').value.trim();
+        const price = parseInt(document.getElementById('newItemPrice').value.trim());
+        const categoryName = document.getElementById('newItemCategoryName').value;
+        const category = predefinedCategories.find(cat => cat.name === categoryName);
+        
+        if (!name || isNaN(price) || price <= 0 || !category) {
+            showItemStatus('Please fill all fields correctly. Price must be a positive number.', true);
+            return;
+        }
+        
+        const newItem = {
+            name: name,
+            price: price,
+            category: category.name,
+            emoji: category.emoji 
+        };
+        
+        // Disable button during API call
+        const addButton = document.querySelector('.add-btn');
+        addButton.disabled = true;
+        addButton.textContent = 'Adding...';
+
+        fetch(MENU_API_URL, { 
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newItem),
+        })
+        .then(async response => { // Use async here to await text/json response
+            addButton.disabled = false;
+            addButton.textContent = 'Add Item to Menu';
+            
+            // --- FIX FOR UNEXPECTED TOKEN ERROR ---
+            const contentType = response.headers.get("content-type");
+            
+            if (response.ok) {
+                 if (contentType && contentType.includes("application/json")) {
+                    return response.json();
+                } else {
+                    // Successful but no JSON (e.g., 200/201 but empty body)
+                    return { message: "Item added, but server response was not JSON." };
+                }
+            } else {
+                // If response is not OK, try to get error message as JSON or plain text
+                let errorText;
+                if (contentType && contentType.includes("application/json")) {
+                    try {
+                        const errorJson = await response.json();
+                        errorText = errorJson.message || JSON.stringify(errorJson);
+                    } catch (e) {
+                        errorText = await response.text();
+                    }
+                } else {
+                    // This handles the <!DOCTYPE html> error explicitly
+                    errorText = await response.text();
+                }
+                
+                // Check if the errorText contains the HTML start tag
+                if (errorText.startsWith('<!DOCTYPE')) {
+                    throw new Error(`Server Error (${response.status}): The API endpoint is returning an HTML page. Please check your server application (Backend API) is running correctly and has a proper POST route for /api/menu.`);
+                } else {
+                    throw new Error(errorText || `Server Error: ${response.status} ${response.statusText}`);
+                }
+            }
+            // --- END FIX ---
+        })
+        .then(data => {
+            showItemStatus(`✅ Item "${name}" added successfully! (ID: ${data.id || 'N/A'}). Please refresh the menu page.`);
+            document.getElementById('addItemForm').reset();
+            
+            console.log('New Item added to DB:', data); 
+            
+        })
+        .catch(error => {
+            addButton.disabled = false;
+            addButton.textContent = 'Add Item to Menu';
+            console.error('Add Item Error:', error);
+            // Display the specific error message to the user
+            showItemStatus('❌ Failed to add item: ' + error.message, true);
+        });
+    }
+
+    // Check if already logged in
     function checkSession() {
       const session = localStorage.getItem(SESSION_KEY);
       if (session) {
@@ -499,6 +881,7 @@
       return false;
     }
 
+    // Login function
     function login() {
       const password = document.getElementById('ownerPassword').value;
       const errorDiv = document.getElementById('loginError');
@@ -517,6 +900,7 @@
       }
     }
 
+    // Logout function
     function logout() {
       localStorage.removeItem(SESSION_KEY);
       document.getElementById('loginContainer').style.display = 'flex';
@@ -525,37 +909,53 @@
       document.getElementById('ownerPassword').value = '';
     }
 
+    // Show dashboard
     function showDashboard() {
       document.getElementById('loginContainer').style.display = 'none';
       document.getElementById('dashboard').classList.add('active');
       document.getElementById('backToMenu').classList.add('show');
-      loadOrders();
-      displayOrders();
-      updateStats();
+      loadOrders(); // Load fresh orders from API
     }
-
+    
+    // API Call to Load Orders (Rest of the functions remain the same)
     function loadOrders() {
-      fetch('https://mrt-cafe-api.onrender.com/api/orders') 
-        .then(response => {
+      const ordersBody = document.getElementById('ordersBody');
+      // Show loading spinner only if the dashboard is active and fetching new data
+      if (document.getElementById('dashboard').classList.contains('active')) {
+          ordersBody.innerHTML = '<div class="loading-spinner">Loading orders... 🔄</div>';
+      }
+
+      fetch(API_BASE_URL) 
+      .then(response => {
           if (!response.ok) {
-            throw new Error('Failed to fetch orders.');
+              throw new Error('Failed to fetch orders from server.');
           }
           return response.json();
-        })
-        .then(data => {
-          allOrders = data.orders || []; 
+      })
+      .then(data => {
+          allOrders = data.orders || data; 
+          // Sort by timestamp (newest first)
+          allOrders.sort((a, b) => b.timestamp - a.timestamp);
+
           displayOrders(); 
           updateStats(); 
-        })
-        .catch(error => {
+      })
+      .catch(error => {
           console.error('Loading Orders Error:', error);
-        });
+          ordersBody.innerHTML = `<div class="empty-orders">
+              <div class="empty-orders-icon">⚠️</div>
+              <p>Failed to connect to the server.</p>
+              <p style="font-size: 0.9rem; margin-top: 5px;">Please check the API service or refresh the page.</p>
+          </div>`;
+      });
     }
 
+    // Update statistics
     function updateStats() {
       const totalOrders = allOrders.length;
       const pending = allOrders.filter(o => !o.confirmed).length;
       const confirmed = allOrders.filter(o => o.confirmed).length;
+      
       const totalRevenue = allOrders.reduce((sum, o) => sum + o.total, 0);
 
       document.getElementById('totalOrders').textContent = totalOrders;
@@ -564,9 +964,11 @@
       document.getElementById('totalRevenue').textContent = `₹${totalRevenue}`;
     }
 
-    function filterOrders(filter) {
+    // Filter orders
+    function filterOrders(event, filter) {
       currentFilter = filter;
       
+      // Update active tab
       document.querySelectorAll('.filter-tab').forEach(tab => {
         tab.classList.remove('active');
       });
@@ -575,6 +977,7 @@
       displayOrders();
     }
 
+    // Display orders
     function displayOrders() {
       const ordersBody = document.getElementById('ordersBody');
       
@@ -598,40 +1001,52 @@
 
       ordersBody.innerHTML = '';
       
-      [...filteredOrders].reverse().forEach((order, index) => {
-        const originalIndex = allOrders.indexOf(order);
+      filteredOrders.forEach((order) => {
         const orderCard = document.createElement('div');
         orderCard.className = `order-card ${order.confirmed ? 'confirmed' : ''}`;
         
         let itemsHTML = '';
         order.items.forEach(item => {
-          itemsHTML += `
-            <div class="order-item-row">
-              <span>${item.name} × ${item.quantity}</span>
-              <span>₹${item.total}</span>
-            </div>
-          `;
+            const isDeliveryCharge = item.name === 'Delivery Charge';
+            const rowClass = isDeliveryCharge ? 'order-item-row delivery-charge-row' : 'order-item-row';
+            
+            // Display item name, quantity (unless it's delivery charge), and total price
+            itemsHTML += `
+                <div class="${rowClass}">
+                <span>${item.name} ${!isDeliveryCharge ? '× ' + item.quantity : ''}</span>
+                <span>₹${item.total}</span>
+                </div>
+            `;
         });
 
         const statusBadge = order.confirmed 
           ? '<span class="order-status confirmed">✓ Confirmed</span>'
           : '<span class="order-status pending">⏳ Pending</span>';
+          
+        const isDeliveryOrder = order.type === 'Delivery';
 
         const confirmButton = order.confirmed
           ? '<button class="confirm-order-btn confirmed" disabled>✓ Confirmed</button>'
-          : `<button class="confirm-order-btn" onclick="confirmOrder(${originalIndex})">✓ Confirm Order</button>`;
+          : `<button class="confirm-order-btn" onclick="confirmOrder('${order.id}')">✓ Confirm Order</button>`;
+          
+        // Conditional display for Table No./Room No.
+        const tableOrRoomDisplay = isDeliveryOrder 
+            ? `<p><strong>Hostel:</strong> ${order.tableNumber}</p>` // Display Hostel name, which is stored in tableNumber for delivery
+            : `<p><strong>Table No.:</strong> ${order.tableNumber}</p>`;
 
         orderCard.innerHTML = `
           <div class="order-card-header">
             <div>
-              <span class="order-number">Order #${order.orderNumber}</span>
+              <span class="order-number">Order #${order.orderNumber} ${isDeliveryOrder ? ' (🛵 Delivery)' : ' (🏠 Dine-In)'}</span>
               ${statusBadge}
             </div>
             <span class="order-time">${order.date} ${order.time}</span>
           </div>
           <div class="customer-details">
-            <p><strong>Customer:</strong> ${order.customerName}</p>
-            <p><strong>Table:</strong> ${order.tableNumber}</p>
+            <p><strong>Order Type:</strong> ${order.type}</p>
+            <p><strong>Location:</strong> ${order.customerName}</p>
+            ${tableOrRoomDisplay}
+            ${order.contactNumber && order.contactNumber !== 'N/A' ? `<p><strong>Contact No.:</strong> ${order.contactNumber}</p>` : ''}
           </div>
           <div class="order-items-list">
             ${itemsHTML}
@@ -639,7 +1054,7 @@
           <div class="order-total">Total: ₹${order.total}</div>
           <div class="order-actions">
             ${confirmButton}
-            <button class="download-order-btn" onclick="downloadOrder(${originalIndex})">📄 Download Order</button>
+            <button class="download-order-btn" onclick="downloadOrder('${order.id}')">📄 Download Bill</button>
           </div>
         `;
         
@@ -647,164 +1062,103 @@
       });
     }
 
-    function confirmOrder(index) {
-      if (confirm('Confirm this order?')) {
-        const orderToUpdate = allOrders[index];
-        const orderId = orderToUpdate.id; 
-        
-        fetch(`https://mrt-cafe-api.onrender.com/api/orders/${orderId}/confirm`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ confirmed: true })
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Failed to confirm order. Server returned status ' + response.status);
-          }
-          loadOrders(); 
-        })
-        .catch(error => {
-          console.error('Confirm Order Error:', error);
-          alert('Error confirming order: ' + error.message);
-        });
-      }
+    // API Call to Confirm Order
+    function confirmOrder(orderId) {
+        if (confirm('Confirm this order?')) {
+            fetch(`${API_BASE_URL}/${orderId}/confirm`, { 
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ confirmed: true })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to confirm order. Server returned status ' + response.status);
+                }
+                loadOrders(); 
+            })
+            .catch(error => {
+                console.error('Confirm Order Error:', error);
+                alert('Error confirming order: ' + error.message);
+            });
+        }
     }
-
-    function downloadOrder(index) {
-      const order = allOrders[index];
+    
+    // Function to download order details as PDF (Logic remains the same)
+    function downloadOrder(orderId) {
+      const order = findOrderById(orderId);
+      if (!order) {
+        alert("Order not found!");
+        return;
+      }
       
-      // Create HTML content for printing
-      let itemsHTML = '';
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      doc.setFontSize(20);
+      doc.setTextColor(40, 40, 40);
+      doc.text('MR.T Cafe - Order Receipt', 105, 20, { align: 'center' });
+
+      doc.setFontSize(12);
+      doc.text(`Order Number: ${order.orderNumber} (${order.type})`, 20, 40);
+      doc.text(`Location: ${order.customerName}`, 20, 50);
+      
+      let startY = 60;
+      
+      if (order.type === 'Dine-In') {
+        doc.text(`Table No.: ${order.tableNumber}`, 20, startY);
+        startY += 10;
+      } 
+      
+      if (order.contactNumber && order.contactNumber !== 'N/A') {
+        doc.text(`Contact No.: ${order.contactNumber}`, 20, startY);
+        startY += 10;
+      }
+      
+      doc.text(`Date: ${order.date} ${order.time}`, 20, startY);
+      doc.text(`Status: ${order.confirmed ? 'Confirmed ✓' : 'Pending '}`, 20, startY + 10);
+      
+      startY += 25;
+
+      const tableData = [];
+      let calculatedTotal = 0;
+
       order.items.forEach(item => {
-        itemsHTML += `
-          <tr>
-            <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.name}</td>
-            <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center;">${item.quantity}</td>
-            <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">₹${item.price}</td>
-            <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">₹${item.total}</td>
-          </tr>
-        `;
+        const itemPrice = (item.name === 'Delivery Charge') ? item.total : item.price; 
+        calculatedTotal += item.total;
+        
+        tableData.push([
+          item.name,
+          (item.name === 'Delivery Charge' ? '' : item.quantity.toString()), 
+          `${itemPrice}`,
+          `${item.total}`
+        ]);
+      });
+      
+      const finalTotal = order.total;
+
+      doc.autoTable({
+        head: [['Item', 'Qty', 'Price', 'Total']],
+        body: tableData,
+        startY: startY,
+        theme: 'grid',
+        headStyles: { fillColor: [145, 77, 100] }
       });
 
-      const printContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Order #${order.orderNumber} - MR.T Cafe</title>
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              padding: 20px;
-              max-width: 800px;
-              margin: 0 auto;
-            }
-            .header {
-              text-align: center;
-              margin-bottom: 30px;
-              border-bottom: 3px solid #f5576c;
-              padding-bottom: 20px;
-            }
-            .header h1 {
-              color: #f5576c;
-              margin-bottom: 5px;
-            }
-            .order-info {
-              background: #f8f9fa;
-              padding: 15px;
-              border-radius: 8px;
-              margin-bottom: 20px;
-            }
-            .order-info p {
-              margin: 5px 0;
-              font-size: 14px;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-bottom: 20px;
-            }
-            th {
-              background: #f5576c;
-              color: white;
-              padding: 10px;
-              text-align: left;
-            }
-            .total-section {
-              text-align: right;
-              font-size: 18px;
-              font-weight: bold;
-              padding: 15px;
-              background: #f8f9fa;
-              border-radius: 8px;
-            }
-            .footer {
-              text-align: center;
-              margin-top: 30px;
-              padding-top: 20px;
-              border-top: 2px solid #ddd;
-              color: #666;
-              font-size: 12px;
-            }
-            @media print {
-              body {
-                padding: 0;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>🍽️ MR.T Cafe</h1>
-            <p>Order Receipt</p>
-          </div>
-          
-          <div class="order-info">
-            <p><strong>Order Number:</strong> #${order.orderNumber}</p>
-            <p><strong>Date & Time:</strong> ${order.date} ${order.time}</p>
-            <p><strong>Customer Name:</strong> ${order.customerName}</p>
-            <p><strong>Table Number:</strong> ${order.tableNumber}</p>
-            <p><strong>Status:</strong> ${order.confirmed ? 'Confirmed ✓' : 'Pending ⏳'}</p>
-          </div>
+      const finalY = doc.lastAutoTable.finalY + 10;
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text(`Grand Total: ${finalTotal}`, doc.internal.pageSize.width - 10, finalY, { align: 'right' });
 
-          <table>
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th style="text-align: center;">Quantity</th>
-                <th style="text-align: right;">Price</th>
-                <th style="text-align: right;">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${itemsHTML}
-            </tbody>
-          </table>
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.text('Thank you for your order! - MR.T Cafe', 105, finalY + 20, { align: 'center' });
 
-          <div class="total-section">
-            <p>Total Amount: ₹${order.total}</p>
-          </div>
-
-          <div class="footer">
-            <p>Thank you for your order!</p>
-            <p>MR.T Cafe - Quality Food, Great Service</p>
-          </div>
-        </body>
-        </html>
-      `;
-
-      // Create a new window for printing
-      const printWindow = window.open('', '', 'width=800,height=600');
-      printWindow.document.write(printContent);
-      printWindow.document.close();
-      
-      // Wait for content to load then print
-      printWindow.onload = function() {
-        printWindow.print();
-      };
+      doc.save(`MRT_Order_#${order.orderNumber}.pdf`);
     }
 
+    // Enter key for password and initial setup
     document.addEventListener('DOMContentLoaded', function() {
       if (!checkSession()) {
         document.getElementById('loginContainer').style.display = 'flex';
@@ -815,16 +1169,10 @@
           login();
         }
       });
+      
+      // Initialize category selector on load
+      populateCategorySelector();
     });
-
-    setInterval(() => {
-      const session = localStorage.getItem(SESSION_KEY);
-      if (session && document.getElementById('dashboard').classList.contains('active')) {
-        loadOrders();
-        displayOrders();
-        updateStats();
-      }
-    }, 30000);
-  </script>
+</script>
 </body>
 </html>
