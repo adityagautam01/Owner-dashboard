@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Owner Dashboard - MR.T Cafe</title>
-  
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
@@ -384,22 +384,7 @@
       transform: translateY(-2px);
     }
 
-    .download-order-btn {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: all 0.3s ease;
-      font-weight: bold;
-    }
-
-    .download-order-btn:hover {
-      background: #0056b3;
-      transform: translateY(-2px);
-    }
+    /* .download-order-btn - REMOVED */
 
     .empty-orders {
       text-align: center;
@@ -1025,9 +1010,10 @@
           
         const isDeliveryOrder = order.type === 'Delivery';
 
+        // Modified confirm button to trigger confirmation AND printing
         const confirmButton = order.confirmed
           ? '<button class="confirm-order-btn confirmed" disabled>✓ Confirmed</button>'
-          : `<button class="confirm-order-btn" onclick="confirmOrder('${order.id}')">✓ Confirm Order</button>`;
+          : `<button class="confirm-order-btn" onclick="confirmAndPrintOrder('${order.id}')">✓ Confirm & Print</button>`;
           
         // Conditional display for Table No./Room No.
         const tableOrRoomDisplay = isDeliveryOrder 
@@ -1054,17 +1040,16 @@
           <div class="order-total">Total: ₹${order.total}</div>
           <div class="order-actions">
             ${confirmButton}
-            <button class="download-order-btn" onclick="downloadOrder('${order.id}')">📄 Download Bill</button>
-          </div>
+            </div>
         `;
         
         ordersBody.appendChild(orderCard);
       });
     }
-
-    // API Call to Confirm Order
-    function confirmOrder(orderId) {
-        if (confirm('Confirm this order?')) {
+    
+    // NEW: Function to handle Confirmation and Printing
+    function confirmAndPrintOrder(orderId) {
+        if (confirm('Confirm this order and print the receipt?')) {
             fetch(`${API_BASE_URL}/${orderId}/confirm`, { 
                 method: 'PUT',
                 headers: {
@@ -1076,7 +1061,16 @@
                 if (!response.ok) {
                     throw new Error('Failed to confirm order. Server returned status ' + response.status);
                 }
-                loadOrders(); 
+                
+                // On successful confirmation, find the order and trigger PDF print
+                const confirmedOrder = findOrderById(orderId);
+                if (confirmedOrder) {
+                    // Update the confirmed status in the local array immediately for correct printing
+                    confirmedOrder.confirmed = true; 
+                    printOrderReceipt(orderId); // Use the modified function name
+                }
+                
+                loadOrders(); // Reload orders to update the UI
             })
             .catch(error => {
                 console.error('Confirm Order Error:', error);
@@ -1084,9 +1078,11 @@
             });
         }
     }
-    
-    // Function to download order details as PDF (Logic remains the same)
-    function downloadOrder(orderId) {
+
+    // API Call to Confirm Order - REMOVED/REPLACED by confirmAndPrintOrder
+
+    // Function to download/print order details as PDF (Modified to trigger print dialog)
+    function printOrderReceipt(orderId) { // Renamed from downloadOrder
       const order = findOrderById(orderId);
       if (!order) {
         alert("Order not found!");
@@ -1106,10 +1102,11 @@
       
       let startY = 60;
       
-      if (order.type === 'Dine-In') {
-        doc.text(`Table No.: ${order.tableNumber}`, 20, startY);
-        startY += 10;
-      } 
+      // Determine the correct label based on order type
+      const locationLabel = order.type === 'Delivery' ? 'Hostel' : 'Table No.';
+      
+      doc.text(`${locationLabel}: ${order.tableNumber}`, 20, startY);
+      startY += 10;
       
       if (order.contactNumber && order.contactNumber !== 'N/A') {
         doc.text(`Contact No.: ${order.contactNumber}`, 20, startY);
@@ -1117,7 +1114,7 @@
       }
       
       doc.text(`Date: ${order.date} ${order.time}`, 20, startY);
-      doc.text(`Status: ${order.confirmed ? 'Confirmed ✓' : 'Pending '}`, 20, startY + 10);
+      doc.text(`Status: Confirmed ✓`, 20, startY + 10); // Since this is called after confirmation
       
       startY += 25;
 
@@ -1155,7 +1152,12 @@
       doc.setFont(undefined, 'normal');
       doc.text('Thank you for your order! - MR.T Cafe', 105, finalY + 20, { align: 'center' });
 
-      doc.save(`MRT_Order_#${order.orderNumber}.pdf`);
+      // Use doc.output('dataurlnewwindow') or similar to trigger print
+      // For a direct print, we save and then rely on the browser's PDF viewer to print.
+      // A common trick to trigger a print dialog immediately:
+      doc.autoPrint();
+      // The output will open a new window and trigger the print dialog.
+      window.open(doc.output('bloburl'), '_blank');
     }
 
     // Enter key for password and initial setup
@@ -1173,7 +1175,7 @@
       // Initialize category selector on load
       populateCategorySelector();
     });
+    
 </script>
 </body>
 </html>
-
