@@ -669,9 +669,11 @@
     const MENU_API_URL = 'https://mrt-cafe-api.onrender.com/api/menu'; // NEW: Menu API Endpoint
     const SESSION_KEY = 'mrtCafeOwnerSession';
     const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    const REFRESH_INTERVAL = 10000; // 10 seconds for auto-refresh (NEW)
     
     let allOrders = [];
     let currentFilter = 'all';
+    let refreshTimer; // To store the interval timer ID (NEW)
     
     // List of Categories from index.html (Manually maintained for now)
     const predefinedCategories = [
@@ -741,9 +743,11 @@
             statusDiv.classList.remove('error');
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
+            stopAutoRefresh(); // NEW: Stop refresh when modal is open
         } else {
             modal.classList.remove('active');
             document.body.style.overflow = 'auto';
+            startAutoRefresh(); // NEW: Resume refresh when modal is closed
         }
     }
     
@@ -849,6 +853,23 @@
         });
     }
 
+    // NEW: Function to start auto-refresh
+    function startAutoRefresh() {
+        // Clear any existing timer just in case
+        stopAutoRefresh(); 
+        console.log('Auto-refresh started (10s interval)');
+        refreshTimer = setInterval(loadOrders, REFRESH_INTERVAL); // Set interval to call loadOrders every 10 seconds
+    }
+
+    // NEW: Function to stop auto-refresh
+    function stopAutoRefresh() {
+        if (refreshTimer) {
+            clearInterval(refreshTimer);
+            refreshTimer = null;
+            console.log('Auto-refresh stopped');
+        }
+    }
+
     // Check if already logged in
     function checkSession() {
       const session = localStorage.getItem(SESSION_KEY);
@@ -887,6 +908,7 @@
 
     // Logout function
     function logout() {
+      stopAutoRefresh(); // Stop refresh on logout (NEW)
       localStorage.removeItem(SESSION_KEY);
       document.getElementById('loginContainer').style.display = 'flex';
       document.getElementById('dashboard').classList.remove('active');
@@ -899,14 +921,16 @@
       document.getElementById('loginContainer').style.display = 'none';
       document.getElementById('dashboard').classList.add('active');
       document.getElementById('backToMenu').classList.add('show');
-      loadOrders(); // Load fresh orders from API
+      loadOrders(); // Load initial orders from API
+      startAutoRefresh(); // Start auto-refresh after loading initial orders (NEW)
     }
     
     // API Call to Load Orders (Rest of the functions remain the same)
     function loadOrders() {
       const ordersBody = document.getElementById('ordersBody');
       // Show loading spinner only if the dashboard is active and fetching new data
-      if (document.getElementById('dashboard').classList.contains('active')) {
+      // Keep loading spinner minimal for auto-refresh, only show on initial load or failure.
+      if (!allOrders.length && document.getElementById('dashboard').classList.contains('active')) {
           ordersBody.innerHTML = '<div class="loading-spinner">Loading orders... 🔄</div>';
       }
 
@@ -927,11 +951,13 @@
       })
       .catch(error => {
           console.error('Loading Orders Error:', error);
-          ordersBody.innerHTML = `<div class="empty-orders">
-              <div class="empty-orders-icon">⚠️</div>
-              <p>Failed to connect to the server.</p>
-              <p style="font-size: 0.9rem; margin-top: 5px;">Please check the API service or refresh the page.</p>
-          </div>`;
+          if (!allOrders.length) { // Only show persistent error if no orders were ever loaded
+              ordersBody.innerHTML = `<div class="empty-orders">
+                  <div class="empty-orders-icon">⚠️</div>
+                  <p>Failed to connect to the server.</p>
+                  <p style="font-size: 0.9rem; margin-top: 5px;">Please check the API service or refresh the page.</p>
+              </div>`;
+          }
       });
     }
 
@@ -1050,6 +1076,7 @@
     // NEW: Function to handle Confirmation and Printing
     function confirmAndPrintOrder(orderId) {
         if (confirm('Confirm this order and print the receipt?')) {
+            stopAutoRefresh(); // NEW: Stop refresh during confirmation
             fetch(`${API_BASE_URL}/${orderId}/confirm`, { 
                 method: 'PUT',
                 headers: {
@@ -1075,6 +1102,9 @@
             .catch(error => {
                 console.error('Confirm Order Error:', error);
                 alert('Error confirming order: ' + error.message);
+            })
+            .finally(() => {
+                startAutoRefresh(); // NEW: Resume refresh after confirmation attempt
             });
         }
     }
