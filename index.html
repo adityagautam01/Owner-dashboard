@@ -41,6 +41,42 @@
       text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
     }
 
+    /* NEW: Auto-refresh indicator */
+    .refresh-indicator {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .refresh-indicator.visible {
+      opacity: 1;
+    }
+
+    .refresh-indicator .spinner {
+      width: 12px;
+      height: 12px;
+      border: 2px solid transparent;
+      border-top-color: #4CAF50;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
     /* Login Screen */
     .login-container {
       display: flex;
@@ -432,6 +468,15 @@
         font-weight: bold;
     }
     
+    /* NEW: Last updated timestamp */
+    .last-updated {
+      text-align: center;
+      color: #999;
+      font-size: 0.8rem;
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+    
     /* Modal Styles */
     .modal {
         display: none;
@@ -577,14 +622,31 @@
       .order-actions {
         flex-direction: column;
       }
+      
+      .refresh-indicator {
+        top: 70px;
+        right: 10px;
+        font-size: 0.7rem;
+      }
     }
   </style>
 </head>
 <body>
   <a href="index.html" class="back-to-menu" id="backToMenu">←</a>
+  
+  <!-- NEW: Auto-refresh indicator -->
+  <div class="refresh-indicator" id="refreshIndicator">
+    <div class="spinner"></div>
+    <span>Auto-refresh in <span id="refreshCountdown">10</span>s</span>
+  </div>
 
   <h1>🍽️ MR.T Cafe</h1>
   <p class="tagline">Owner Dashboard</p>
+  
+  <!-- NEW: Last updated timestamp -->
+  <div class="last-updated" id="lastUpdated">
+    Last updated: <span id="lastUpdatedTime">Never</span>
+  </div>
 
   <div class="login-container" id="loginContainer">
     <div class="login-box">
@@ -622,7 +684,6 @@
             </form>
         </div>
     </div>
-
 
   <div class="dashboard" id="dashboard">
     <div class="dashboard-header">
@@ -669,13 +730,15 @@
     const MENU_API_URL = 'https://mrt-cafe-api.onrender.com/api/menu'; // NEW: Menu API Endpoint
     const SESSION_KEY = 'mrtCafeOwnerSession';
     const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-    const REFRESH_INTERVAL = 10000; // 10 seconds for auto-refresh (NEW)
+    const REFRESH_INTERVAL = 10000; // 10 seconds for auto-refresh
     
     let allOrders = [];
     let currentFilter = 'all';
-    let refreshTimer; // To store the interval timer ID (NEW)
+    let refreshTimer;
+    let countdownTimer;
+    let secondsUntilRefresh = 10;
     
-    // List of Categories from index.html (Manually maintained for now)
+    // List of Categories from index.html
     const predefinedCategories = [
         { name: 'Chai Shai', emoji: '☕' },
         { name: 'Coffee', emoji: '☕' },
@@ -716,10 +779,9 @@
         return allOrders.find(order => order.id === orderId);
     }
     
-    // Function to populate the category dropdown in the Add Item Modal
+    // Function to populate the category dropdown
     function populateCategorySelector() {
         const selector = document.getElementById('newItemCategoryName');
-        // Clear previous options except the default 'Select'
         selector.innerHTML = '<option value="" disabled selected>Select a category...</option>'; 
         
         predefinedCategories.forEach(cat => {
@@ -728,6 +790,51 @@
             option.textContent = `${cat.emoji} ${cat.name}`;
             selector.appendChild(option);
         });
+    }
+
+    // NEW: Function to update last updated timestamp
+    function updateLastUpdatedTime() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      document.getElementById('lastUpdatedTime').textContent = timeString;
+    }
+
+    // NEW: Function to update countdown display
+    function updateCountdownDisplay(seconds) {
+      document.getElementById('refreshCountdown').textContent = seconds;
+    }
+
+    // NEW: Function to start countdown
+    function startCountdown() {
+      secondsUntilRefresh = 10;
+      updateCountdownDisplay(secondsUntilRefresh);
+      
+      if (countdownTimer) clearInterval(countdownTimer);
+      
+      countdownTimer = setInterval(() => {
+        secondsUntilRefresh--;
+        updateCountdownDisplay(secondsUntilRefresh);
+        
+        if (secondsUntilRefresh <= 0) {
+          secondsUntilRefresh = 10;
+          updateCountdownDisplay(secondsUntilRefresh);
+        }
+      }, 1000);
+    }
+
+    // NEW: Function to show/hide refresh indicator
+    function toggleRefreshIndicator(show) {
+      const indicator = document.getElementById('refreshIndicator');
+      if (show) {
+        indicator.classList.add('visible');
+        startCountdown();
+      } else {
+        indicator.classList.remove('visible');
+        if (countdownTimer) {
+          clearInterval(countdownTimer);
+          countdownTimer = null;
+        }
+      }
     }
 
     // Toggle Add Item Modal
@@ -743,11 +850,13 @@
             statusDiv.classList.remove('error');
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
-            stopAutoRefresh(); // NEW: Stop refresh when modal is open
+            stopAutoRefresh();
+            toggleRefreshIndicator(false);
         } else {
             modal.classList.remove('active');
             document.body.style.overflow = 'auto';
-            startAutoRefresh(); // NEW: Resume refresh when modal is closed
+            startAutoRefresh();
+            toggleRefreshIndicator(true);
         }
     }
     
@@ -760,7 +869,7 @@
       
       setTimeout(() => {
         statusDiv.style.display = 'none';
-      }, 7000); // Increased time for better visibility of the error
+      }, 7000);
     }
 
     // Function to handle adding a new item via API
@@ -799,22 +908,19 @@
             },
             body: JSON.stringify(newItem),
         })
-        .then(async response => { // Use async here to await text/json response
+        .then(async response => {
             addButton.disabled = false;
             addButton.textContent = 'Add Item to Menu';
             
-            // --- FIX FOR UNEXPECTED TOKEN ERROR ---
             const contentType = response.headers.get("content-type");
             
             if (response.ok) {
                  if (contentType && contentType.includes("application/json")) {
                     return response.json();
                 } else {
-                    // Successful but no JSON (e.g., 200/201 but empty body)
                     return { message: "Item added, but server response was not JSON." };
                 }
             } else {
-                // If response is not OK, try to get error message as JSON or plain text
                 let errorText;
                 if (contentType && contentType.includes("application/json")) {
                     try {
@@ -824,50 +930,45 @@
                         errorText = await response.text();
                     }
                 } else {
-                    // This handles the <!DOCTYPE html> error explicitly
                     errorText = await response.text();
                 }
                 
-                // Check if the errorText contains the HTML start tag
                 if (errorText.startsWith('<!DOCTYPE')) {
                     throw new Error(`Server Error (${response.status}): The API endpoint is returning an HTML page. Please check your server application (Backend API) is running correctly and has a proper POST route for /api/menu.`);
                 } else {
                     throw new Error(errorText || `Server Error: ${response.status} ${response.statusText}`);
                 }
             }
-            // --- END FIX ---
         })
         .then(data => {
             showItemStatus(`✅ Item "${name}" added successfully! (ID: ${data.id || 'N/A'}). Please refresh the menu page.`);
             document.getElementById('addItemForm').reset();
-            
             console.log('New Item added to DB:', data); 
-            
         })
         .catch(error => {
             addButton.disabled = false;
             addButton.textContent = 'Add Item to Menu';
             console.error('Add Item Error:', error);
-            // Display the specific error message to the user
             showItemStatus('❌ Failed to add item: ' + error.message, true);
         });
     }
 
-    // NEW: Function to start auto-refresh
+    // Function to start auto-refresh
     function startAutoRefresh() {
-        // Clear any existing timer just in case
-        stopAutoRefresh(); 
+        stopAutoRefresh();
         console.log('Auto-refresh started (10s interval)');
-        refreshTimer = setInterval(loadOrders, REFRESH_INTERVAL); // Set interval to call loadOrders every 10 seconds
+        // toggleRefreshIndicator(true);
+        refreshTimer = setInterval(loadOrders, REFRESH_INTERVAL);
     }
 
-    // NEW: Function to stop auto-refresh
+    // Function to stop auto-refresh
     function stopAutoRefresh() {
         if (refreshTimer) {
             clearInterval(refreshTimer);
             refreshTimer = null;
             console.log('Auto-refresh stopped');
         }
+        toggleRefreshIndicator(false);
     }
 
     // Check if already logged in
@@ -908,12 +1009,13 @@
 
     // Logout function
     function logout() {
-      stopAutoRefresh(); // Stop refresh on logout (NEW)
+      stopAutoRefresh();
       localStorage.removeItem(SESSION_KEY);
       document.getElementById('loginContainer').style.display = 'flex';
       document.getElementById('dashboard').classList.remove('active');
       document.getElementById('backToMenu').classList.remove('show');
       document.getElementById('ownerPassword').value = '';
+      document.getElementById('lastUpdated').style.display = 'none';
     }
 
     // Show dashboard
@@ -921,15 +1023,15 @@
       document.getElementById('loginContainer').style.display = 'none';
       document.getElementById('dashboard').classList.add('active');
       document.getElementById('backToMenu').classList.add('show');
-      loadOrders(); // Load initial orders from API
-      startAutoRefresh(); // Start auto-refresh after loading initial orders (NEW)
+      document.getElementById('lastUpdated').style.display = 'block';
+      loadOrders();
+      startAutoRefresh();
     }
     
-    // API Call to Load Orders (Rest of the functions remain the same)
+    // API Call to Load Orders
     function loadOrders() {
       const ordersBody = document.getElementById('ordersBody');
-      // Show loading spinner only if the dashboard is active and fetching new data
-      // Keep loading spinner minimal for auto-refresh, only show on initial load or failure.
+      
       if (!allOrders.length && document.getElementById('dashboard').classList.contains('active')) {
           ordersBody.innerHTML = '<div class="loading-spinner">Loading orders... 🔄</div>';
       }
@@ -943,15 +1045,15 @@
       })
       .then(data => {
           allOrders = data.orders || data; 
-          // Sort by timestamp (newest first)
           allOrders.sort((a, b) => b.timestamp - a.timestamp);
 
           displayOrders(); 
-          updateStats(); 
+          updateStats();
+          updateLastUpdatedTime(); // NEW: Update timestamp after successful load
       })
       .catch(error => {
           console.error('Loading Orders Error:', error);
-          if (!allOrders.length) { // Only show persistent error if no orders were ever loaded
+          if (!allOrders.length) {
               ordersBody.innerHTML = `<div class="empty-orders">
                   <div class="empty-orders-icon">⚠️</div>
                   <p>Failed to connect to the server.</p>
@@ -1021,7 +1123,6 @@
             const isDeliveryCharge = item.name === 'Delivery Charge';
             const rowClass = isDeliveryCharge ? 'order-item-row delivery-charge-row' : 'order-item-row';
             
-            // Display item name, quantity (unless it's delivery charge), and total price
             itemsHTML += `
                 <div class="${rowClass}">
                 <span>${item.name} ${!isDeliveryCharge ? '× ' + item.quantity : ''}</span>
@@ -1036,14 +1137,12 @@
           
         const isDeliveryOrder = order.type === 'Delivery';
 
-        // Modified confirm button to trigger confirmation AND printing
         const confirmButton = order.confirmed
           ? '<button class="confirm-order-btn confirmed" disabled>✓ Confirmed</button>'
           : `<button class="confirm-order-btn" onclick="confirmAndPrintOrder('${order.id}')">✓ Confirm & Print</button>`;
           
-        // Conditional display for Table No./Room No.
         const tableOrRoomDisplay = isDeliveryOrder 
-            ? `<p><strong>Hostel:</strong> ${order.tableNumber}</p>` // Display Hostel name, which is stored in tableNumber for delivery
+            ? `<p><strong>Hostel:</strong> ${order.tableNumber}</p>`
             : `<p><strong>Table No.:</strong> ${order.tableNumber}</p>`;
 
         orderCard.innerHTML = `
@@ -1073,10 +1172,10 @@
       });
     }
     
-    // NEW: Function to handle Confirmation and Printing
+    // Function to handle Confirmation and Printing
     function confirmAndPrintOrder(orderId) {
         if (confirm('Confirm this order and print the receipt?')) {
-            stopAutoRefresh(); // NEW: Stop refresh during confirmation
+            stopAutoRefresh();
             fetch(`${API_BASE_URL}/${orderId}/confirm`, { 
                 method: 'PUT',
                 headers: {
@@ -1089,30 +1188,26 @@
                     throw new Error('Failed to confirm order. Server returned status ' + response.status);
                 }
                 
-                // On successful confirmation, find the order and trigger PDF print
                 const confirmedOrder = findOrderById(orderId);
                 if (confirmedOrder) {
-                    // Update the confirmed status in the local array immediately for correct printing
                     confirmedOrder.confirmed = true; 
-                    printOrderReceipt(orderId); // Use the modified function name
+                    printOrderReceipt(orderId);
                 }
                 
-                loadOrders(); // Reload orders to update the UI
+                loadOrders();
             })
             .catch(error => {
                 console.error('Confirm Order Error:', error);
                 alert('Error confirming order: ' + error.message);
             })
             .finally(() => {
-                startAutoRefresh(); // NEW: Resume refresh after confirmation attempt
+                startAutoRefresh();
             });
         }
     }
 
-    // API Call to Confirm Order - REMOVED/REPLACED by confirmAndPrintOrder
-
-    // Function to download/print order details as PDF (Modified to trigger print dialog)
-    function printOrderReceipt(orderId) { // Renamed from downloadOrder
+    // Function to print order receipt
+    function printOrderReceipt(orderId) {
       const order = findOrderById(orderId);
       if (!order) {
         alert("Order not found!");
@@ -1132,7 +1227,6 @@
       
       let startY = 60;
       
-      // Determine the correct label based on order type
       const locationLabel = order.type === 'Delivery' ? 'Hostel' : 'Table No.';
       
       doc.text(`${locationLabel}: ${order.tableNumber}`, 20, startY);
@@ -1144,7 +1238,7 @@
       }
       
       doc.text(`Date: ${order.date} ${order.time}`, 20, startY);
-      doc.text(`Status: Confirmed ✓`, 20, startY + 10); // Since this is called after confirmation
+      doc.text(`Status: Confirmed ✓`, 20, startY + 10);
       
       startY += 25;
 
@@ -1182,11 +1276,7 @@
       doc.setFont(undefined, 'normal');
       doc.text('Thank you for your order! - MR.T Cafe', 105, finalY + 20, { align: 'center' });
 
-      // Use doc.output('dataurlnewwindow') or similar to trigger print
-      // For a direct print, we save and then rely on the browser's PDF viewer to print.
-      // A common trick to trigger a print dialog immediately:
       doc.autoPrint();
-      // The output will open a new window and trigger the print dialog.
       window.open(doc.output('bloburl'), '_blank');
     }
 
