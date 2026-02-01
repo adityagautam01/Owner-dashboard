@@ -419,8 +419,24 @@
       background: #c82333;
       transform: translateY(-2px);
     }
+    
+    /* NEW: Edit Bill Button */
+    .edit-bill-btn {
+      background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      font-weight: bold;
+    }
 
-    /* .download-order-btn - REMOVED */
+    .edit-bill-btn:hover {
+      background: linear-gradient(135deg, #f57c00 0%, #e64a19 100%);
+      transform: translateY(-2px);
+    }
 
     .empty-orders {
       text-align: center;
@@ -499,9 +515,11 @@
         background: white;
         border-radius: 20px;
         width: 90%;
-        max-width: 450px;
+        max-width: 500px;
         padding: 20px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        max-height: 90vh;
+        overflow-y: auto;
     }
     
     .modal-content h2 {
@@ -579,6 +597,107 @@
         color: #721c24;
         border: 1px solid #f5c6cb;
     }
+    
+    /* Edit Bill Modal Styles */
+    .edit-bill-items-list {
+      margin: 15px 0;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #e1e5e9;
+      border-radius: 8px;
+      padding: 10px;
+    }
+    
+    .edit-bill-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .edit-bill-item:last-child {
+      border-bottom: none;
+    }
+    
+    .edit-bill-item-info {
+      flex: 1;
+    }
+    
+    .edit-bill-item-name {
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .edit-bill-item-price {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .edit-bill-item-actions {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .edit-item-btn, .remove-item-btn {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.3s ease;
+    }
+    
+    .edit-item-btn {
+      background: #4CAF50;
+      color: white;
+    }
+    
+    .edit-item-btn:hover {
+      background: #388E3C;
+    }
+    
+    .remove-item-btn {
+      background: #f44336;
+      color: white;
+    }
+    
+    .remove-item-btn:hover {
+      background: #d32f2f;
+    }
+    
+    .add-new-item-section {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 10px;
+    }
+    
+    .add-new-item-section h3 {
+      margin-bottom: 10px;
+      color: #333;
+      font-size: 1rem;
+    }
+    
+    .form-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .form-row input {
+      flex: 1;
+    }
+    
+    .edit-bill-total {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #28a745;
+      text-align: right;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 2px solid #dee2e6;
+    }
 
     @media (max-width: 768px) {
       body {
@@ -628,6 +747,14 @@
         right: 10px;
         font-size: 0.7rem;
       }
+      
+      .modal-actions {
+        flex-direction: column;
+      }
+      
+      .form-row {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
@@ -660,30 +787,41 @@
     </div>
   </div>
 
+  <!-- Add Item Modal -->
   <div class="modal" id="addItemModal">
-        <div class="modal-content">
-            <h2>➕ Add New Menu Item</h2>
-            <form id="addItemForm">
-                <label for="newItemName">Item Name:</label>
-                <input type="text" id="newItemName" placeholder="e.g., Spicy Chicken Wings" required>
-                
-                <label for="newItemPrice">Price (₹):</label>
-                <input type="number" id="newItemPrice" placeholder="e.g., 120" min="1" required>
-                
-                <label for="newItemCategoryName">Category Name:</label>
-                <select id="newItemCategoryName" required>
-                    <option value="" disabled selected>Select or type a category...</option>
-                    </select>
-                
-                <div class="item-status-message" id="itemStatusMessage"></div>
+    <div class="modal-content">
+      <h2>➕ Add New Menu Item</h2>
+      <form id="addItemForm">
+        <label for="newItemName">Item Name:</label>
+        <input type="text" id="newItemName" placeholder="e.g., Spicy Chicken Wings" required>
+        
+        <label for="newItemPrice">Price (₹):</label>
+        <input type="number" id="newItemPrice" placeholder="e.g., 120" min="1" required>
+        
+        <label for="newItemCategoryName">Category Name:</label>
+        <select id="newItemCategoryName" required>
+          <option value="" disabled selected>Select or type a category...</option>
+        </select>
+        
+        <div class="item-status-message" id="itemStatusMessage"></div>
 
-                <div class="modal-actions">
-                    <button type="button" class="cancel-btn" onclick="showAddItemModal(false)">Cancel</button>
-                    <button type="submit" class="add-btn">Add Item to Menu</button>
-                </div>
-            </form>
+        <div class="modal-actions">
+          <button type="button" class="cancel-btn" onclick="showAddItemModal(false)">Cancel</button>
+          <button type="submit" class="add-btn">Add Item to Menu</button>
         </div>
+      </form>
     </div>
+  </div>
+  
+  <!-- Edit Bill Modal -->
+  <div class="modal" id="editBillModal">
+    <div class="modal-content">
+      <h2>✏️ Edit Bill</h2>
+      <div id="editBillContent">
+        <!-- Dynamic content will be loaded here -->
+      </div>
+    </div>
+  </div>
 
   <div class="dashboard" id="dashboard">
     <div class="dashboard-header">
@@ -724,7 +862,7 @@
     </div>
   </div>
 
-   <script>
+  <script>
     const OWNER_PASSWORD = '5555'; // 🔐 Change this password as needed
     const API_BASE_URL = 'https://mrt-cafe-api.onrender.com/api/orders'; // Server API Endpoint
     const MENU_API_URL = 'https://mrt-cafe-api.onrender.com/api/menu'; // NEW: Menu API Endpoint
@@ -737,6 +875,7 @@
     let refreshTimer;
     let countdownTimer;
     let secondsUntilRefresh = 10;
+    let currentlyEditingOrder = null;
     
     // List of Categories from index.html
     const predefinedCategories = [
@@ -952,12 +1091,285 @@
             showItemStatus('❌ Failed to add item: ' + error.message, true);
         });
     }
+    
+    // Function to show Edit Bill modal
+    function showEditBillModal(orderId) {
+        currentlyEditingOrder = findOrderById(orderId);
+        if (!currentlyEditingOrder) {
+            alert('Order not found!');
+            return;
+        }
+        
+        const modal = document.getElementById('editBillModal');
+        const contentDiv = document.getElementById('editBillContent');
+        
+        // Stop auto-refresh while editing
+        stopAutoRefresh();
+        toggleRefreshIndicator(false);
+        
+        // Create edit bill content
+        let itemsHTML = '';
+        currentlyEditingOrder.items.forEach((item, index) => {
+            itemsHTML += `
+                <div class="edit-bill-item" data-index="${index}">
+                    <div class="edit-bill-item-info">
+                        <div class="edit-bill-item-name">${item.name}</div>
+                        <div class="edit-bill-item-price">Price: ₹${item.price} | Qty: ${item.quantity} | Total: ₹${item.total}</div>
+                    </div>
+                    <div class="edit-bill-item-actions">
+                        <button class="edit-item-btn" onclick="editItem(${index})">Edit</button>
+                        <button class="remove-item-btn" onclick="removeItem(${index})">Remove</button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        const total = currentlyEditingOrder.total;
+        
+        contentDiv.innerHTML = `
+            <div style="margin-bottom: 15px;">
+                <p><strong>Order #${currentlyEditingOrder.orderNumber}</strong></p>
+                <p>Type: ${currentlyEditingOrder.type} | Date: ${currentlyEditingOrder.date} ${currentlyEditingOrder.time}</p>
+            </div>
+            
+            <div class="edit-bill-items-list" id="editBillItemsList">
+                ${itemsHTML}
+            </div>
+            
+            <div class="edit-bill-total" id="editBillTotal">
+                Current Total: ₹${total}
+            </div>
+            
+            <div class="add-new-item-section">
+                <h3>Add New Item to this Bill:</h3>
+                <div class="form-row">
+                    <input type="text" id="newItemNameInput" placeholder="Item Name (e.g., Masala Tea)">
+                    <input type="number" id="newItemPriceInput" placeholder="Price (₹)">
+                </div>
+                <div class="form-row">
+                    <input type="number" id="newItemQuantityInput" placeholder="Quantity" value="1" min="1">
+                    <button class="add-btn" onclick="addNewItemToBill()" style="flex: 0.5;">Add</button>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="cancel-btn" onclick="closeEditBillModal()">Cancel / Close</button>
+                <button type="button" class="add-btn" onclick="updateBill()">Save & Update Bill</button>
+            </div>
+        `;
+        
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    // Function to close Edit Bill modal
+    function closeEditBillModal() {
+        const modal = document.getElementById('editBillModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        currentlyEditingOrder = null;
+        
+        // Restart auto-refresh
+        startAutoRefresh();
+        toggleRefreshIndicator(true);
+    }
+    
+    // Function to edit an existing item
+    function editItem(itemIndex) {
+        if (!currentlyEditingOrder) return;
+        
+        const item = currentlyEditingOrder.items[itemIndex];
+        const newQuantity = prompt(`Edit quantity for "${item.name}" (current: ${item.quantity}):`, item.quantity);
+        
+        if (newQuantity && !isNaN(newQuantity) && parseInt(newQuantity) > 0) {
+            const quantity = parseInt(newQuantity);
+            item.quantity = quantity;
+            item.total = item.price * quantity;
+            
+            // Recalculate order total
+            recalculateOrderTotal();
+            
+            // Update UI
+            updateEditBillUI();
+        }
+    }
+    
+    // Function to remove an item
+    function removeItem(itemIndex) {
+        if (!currentlyEditingOrder) return;
+        
+        if (confirm('Are you sure you want to remove this item from the bill?')) {
+            currentlyEditingOrder.items.splice(itemIndex, 1);
+            
+            // Recalculate order total
+            recalculateOrderTotal();
+            
+            // Update UI
+            updateEditBillUI();
+        }
+    }
+    
+    // Function to add a new item to the bill
+    function addNewItemToBill() {
+        if (!currentlyEditingOrder) return;
+        
+        const name = document.getElementById('newItemNameInput').value.trim();
+        const price = parseFloat(document.getElementById('newItemPriceInput').value);
+        const quantity = parseInt(document.getElementById('newItemQuantityInput').value) || 1;
+        
+        if (!name || isNaN(price) || price <= 0) {
+            alert('Please enter valid item name and price');
+            return;
+        }
+        
+        // Check if item already exists
+        const existingItemIndex = currentlyEditingOrder.items.findIndex(item => item.name === name);
+        
+        if (existingItemIndex !== -1) {
+            // Update existing item quantity
+            currentlyEditingOrder.items[existingItemIndex].quantity += quantity;
+            currentlyEditingOrder.items[existingItemIndex].total = 
+                currentlyEditingOrder.items[existingItemIndex].price * currentlyEditingOrder.items[existingItemIndex].quantity;
+        } else {
+            // Add new item
+            currentlyEditingOrder.items.push({
+                name: name,
+                price: price,
+                quantity: quantity,
+                total: price * quantity
+            });
+        }
+        
+        // Recalculate order total
+        recalculateOrderTotal();
+        
+        // Clear inputs
+        document.getElementById('newItemNameInput').value = '';
+        document.getElementById('newItemPriceInput').value = '';
+        document.getElementById('newItemQuantityInput').value = '1';
+        
+        // Update UI
+        updateEditBillUI();
+    }
+    
+    // Function to recalculate order total
+    function recalculateOrderTotal() {
+        if (!currentlyEditingOrder) return;
+        
+        let total = 0;
+        currentlyEditingOrder.items.forEach(item => {
+            total += item.total;
+        });
+        
+        currentlyEditingOrder.total = total;
+    }
+    
+    // Function to update edit bill UI
+    function updateEditBillUI() {
+        if (!currentlyEditingOrder) return;
+        
+        const itemsList = document.getElementById('editBillItemsList');
+        const totalDiv = document.getElementById('editBillTotal');
+        
+        // Update items list
+        let itemsHTML = '';
+        currentlyEditingOrder.items.forEach((item, index) => {
+            itemsHTML += `
+                <div class="edit-bill-item" data-index="${index}">
+                    <div class="edit-bill-item-info">
+                        <div class="edit-bill-item-name">${item.name}</div>
+                        <div class="edit-bill-item-price">Price: ₹${item.price} | Qty: ${item.quantity} | Total: ₹${item.total}</div>
+                    </div>
+                    <div class="edit-bill-item-actions">
+                        <button class="edit-item-btn" onclick="editItem(${index})">Edit</button>
+                        <button class="remove-item-btn" onclick="removeItem(${index})">Remove</button>
+                    </div>
+                </div>
+            `;
+        });
+        orderCard.innerHTML = `
+  <div class="order-card-header">
+    <div>
+      <span class="order-number">Order #${order.orderNumber} ${isDeliveryOrder ? ' (🛵 Delivery)' : ' (🏠 Dine-In)'}</span>
+      ${statusBadge}
+    </div>
+    <span class="order-time">${order.date} ${order.time}</span>
+  </div>
+  <div class="customer-details">
+    <p><strong>Order Type:</strong> ${order.type}</p>
+    <p><strong>Location:</strong> ${order.customerName}</p>
+    ${tableOrRoomDisplay}
+    ${order.contactNumber && order.contactNumber !== 'N/A' ? `<p><strong>Contact No.:</strong> ${order.contactNumber}</p>` : ''}
+  </div>
+  <div class="order-items-list">
+    ${itemsHTML}
+  </div>
+  <div class="order-total">Total: ₹${order.total}</div>
+  <div class="order-actions">
+    ${confirmButton}
+    ${editBillButton}
+    <button class="delete-order-btn" onclick="deleteOrder('${order.id}')">🗑️ Delete</button>
+  </div>
+`;
+    }
+    
+    // Function to update bill on server
+    function updateBill() {
+        if (!currentlyEditingOrder) return;
+        
+        if (confirm('Are you sure you want to update this bill? This will modify the order on the server.')) {
+            // Send update request to server
+            fetch(`${API_BASE_URL}/${currentlyEditingOrder.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    items: currentlyEditingOrder.items,
+                    total: currentlyEditingOrder.total,
+                    // Preserve other fields
+                    confirmed: currentlyEditingOrder.confirmed,
+                    orderNumber: currentlyEditingOrder.orderNumber,
+                    customerName: currentlyEditingOrder.customerName,
+                    tableNumber: currentlyEditingOrder.tableNumber,
+                    contactNumber: currentlyEditingOrder.contactNumber,
+                    type: currentlyEditingOrder.type,
+                    date: currentlyEditingOrder.date,
+                    time: currentlyEditingOrder.time,
+                    timestamp: currentlyEditingOrder.timestamp
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to update bill on server');
+                }
+                return response.json();
+            })
+            .then(updatedOrder => {
+                // Update local order data
+                const index = allOrders.findIndex(order => order.id === currentlyEditingOrder.id);
+                if (index !== -1) {
+                    allOrders[index] = updatedOrder;
+                }
+                
+                alert('✅ Bill updated successfully!');
+                closeEditBillModal();
+                
+                // Refresh display
+                displayOrders();
+                updateStats();
+            })
+            .catch(error => {
+                console.error('Update bill error:', error);
+                alert('❌ Failed to update bill: ' + error.message);
+            });
+        }
+    }
 
     // Function to start auto-refresh
     function startAutoRefresh() {
         stopAutoRefresh();
-        console.log('Auto-refresh started (10s interval)');
-        // toggleRefreshIndicator(true);
+        console.log('Auto-refresh started (5s interval)');
         refreshTimer = setInterval(loadOrders, REFRESH_INTERVAL);
     }
 
@@ -1091,26 +1503,91 @@
     }
 
     // Display orders
-    function displayOrders() {
-      const ordersBody = document.getElementById('ordersBody');
-      
-      let filteredOrders = allOrders;
-      if (currentFilter === 'pending') {
-        filteredOrders = allOrders.filter(o => !o.confirmed);
-      } else if (currentFilter === 'confirmed') {
-        filteredOrders = allOrders.filter(o => o.confirmed);
-      }
+function displayOrders() {
+  const ordersBody = document.getElementById('ordersBody');
+  
+  let filteredOrders = allOrders;
+  if (currentFilter === 'pending') {
+    filteredOrders = allOrders.filter(o => !o.confirmed);
+  } else if (currentFilter === 'confirmed') {
+    filteredOrders = allOrders.filter(o => o.confirmed);
+  }
 
-      if (filteredOrders.length === 0) {
-        ordersBody.innerHTML = `
-          <div class="empty-orders">
-            <div class="empty-orders-icon">📋</div>
-            <p>No ${currentFilter !== 'all' ? currentFilter : ''} orders</p>
-            <p style="font-size: 0.9rem; margin-top: 5px;">Orders will appear here once customers place them</p>
-          </div>
+  if (filteredOrders.length === 0) {
+    ordersBody.innerHTML = `
+      <div class="empty-orders">
+        <div class="empty-orders-icon">📋</div>
+        <p>No ${currentFilter !== 'all' ? currentFilter : ''} orders</p>
+        <p style="font-size: 0.9rem; margin-top: 5px;">Orders will appear here once customers place them</p>
+      </div>
+    `;
+    return;
+  }
+
+  ordersBody.innerHTML = '';
+  
+  filteredOrders.forEach((order) => {
+    const orderCard = document.createElement('div');
+    orderCard.className = `order-card ${order.confirmed ? 'confirmed' : ''}`;
+    
+    let itemsHTML = '';
+    order.items.forEach(item => {
+        const isDeliveryCharge = item.name === 'Delivery Charge';
+        const rowClass = isDeliveryCharge ? 'order-item-row delivery-charge-row' : 'order-item-row';
+        
+        itemsHTML += `
+            <div class="${rowClass}">
+            <span>${item.name} ${!isDeliveryCharge ? '× ' + item.quantity : ''}</span>
+            <span>₹${item.total}</span>
+            </div>
         `;
-        return;
-      }
+    });
+
+    const statusBadge = order.confirmed 
+      ? '<span class="order-status confirmed">✓ Confirmed</span>'
+      : '<span class="order-status pending">⏳ Pending</span>';
+      
+    const isDeliveryOrder = order.type === 'Delivery';
+
+    const confirmButton = order.confirmed
+      ? '<button class="confirm-order-btn confirmed" disabled>✓ Confirmed</button>'
+      : `<button class="confirm-order-btn" onclick="confirmAndPrintOrder('${order.id}')">✓ Confirm & Print</button>`;
+    
+    // NEW: Edit Bill Button
+    const editBillButton = `<button class="edit-bill-btn" onclick="showEditBillModal('${order.id}')">✏️ Edit Bill</button>`;
+      
+    const tableOrRoomDisplay = isDeliveryOrder 
+        ? `<p><strong>Hostel:</strong> ${order.tableNumber}</p>`
+        : `<p><strong>Table No.:</strong> ${order.tableNumber}</p>`;
+
+    orderCard.innerHTML = `
+      <div class="order-card-header">
+        <div>
+          <span class="order-number">Order #${order.orderNumber} ${isDeliveryOrder ? ' (🛵 Delivery)' : ' (🏠 Dine-In)'}</span>
+          ${statusBadge}
+        </div>
+        <span class="order-time">${order.date} ${order.time}</span>
+      </div>
+      <div class="customer-details">
+        <p><strong>Order Type:</strong> ${order.type}</p>
+        <p><strong>Location:</strong> ${order.customerName}</p>
+        ${tableOrRoomDisplay}
+        ${order.contactNumber && order.contactNumber !== 'N/A' ? `<p><strong>Contact No.:</strong> ${order.contactNumber}</p>` : ''}
+      </div>
+      <div class="order-items-list">
+        ${itemsHTML}
+      </div>
+      <div class="order-total">Total: ₹${order.total}</div>
+      <div class="order-actions">
+        ${confirmButton}
+        ${editBillButton}
+        <button class="delete-order-btn" onclick="deleteOrder('${order.id}')">🗑️ Delete</button>
+      </div>
+    `;
+    
+    ordersBody.appendChild(orderCard);
+  });
+
 
       ordersBody.innerHTML = '';
       
@@ -1140,6 +1617,9 @@
         const confirmButton = order.confirmed
           ? '<button class="confirm-order-btn confirmed" disabled>✓ Confirmed</button>'
           : `<button class="confirm-order-btn" onclick="confirmAndPrintOrder('${order.id}')">✓ Confirm & Print</button>`;
+        
+        // NEW: Edit Bill Button
+        const editBillButton = `<button class="edit-bill-btn" onclick="showEditBillModal('${order.id}')">✏️ Edit Bill</button>`;
           
         const tableOrRoomDisplay = isDeliveryOrder 
             ? `<p><strong>Hostel:</strong> ${order.tableNumber}</p>`
@@ -1165,7 +1645,8 @@
           <div class="order-total">Total: ₹${order.total}</div>
           <div class="order-actions">
             ${confirmButton}
-            </div>
+            ${editBillButton}
+          </div>
         `;
         
         ordersBody.appendChild(orderCard);
@@ -1205,6 +1686,46 @@
             });
         }
     }
+
+
+    // Function to delete an order
+function deleteOrder(orderId) {
+    if (confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
+        stopAutoRefresh();
+        
+        fetch(`${API_BASE_URL}/${orderId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to delete order from server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Remove order from local array
+            allOrders = allOrders.filter(order => order.id !== orderId);
+            
+            // Refresh display
+            displayOrders();
+            updateStats();
+            
+            // Show success message
+            alert('✅ Order deleted successfully!');
+        })
+        .catch(error => {
+            console.error('Delete Order Error:', error);
+            alert('❌ Failed to delete order: ' + error.message);
+        })
+        .finally(() => {
+            startAutoRefresh();
+        });
+    }
+}
+
 
     // Function to print order receipt
     function printOrderReceipt(orderId) {
@@ -1294,8 +1815,60 @@
       
       // Initialize category selector on load
       populateCategorySelector();
+      
+      // Close edit bill modal when clicking outside
+      document.getElementById('editBillModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeEditBillModal();
+        }
+      });
     });
     
-</script>
+
+    // Function to update bill on server
+function updateBill() {
+    if (!currentlyEditingOrder) return;
+    
+    if (confirm('Are you sure you want to update this bill? This will modify the order on the server.')) {
+        stopAutoRefresh();
+        
+        // Send update request to server
+        fetch(`${API_BASE_URL}/${currentlyEditingOrder.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(currentlyEditingOrder)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Server returned status: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(updatedOrder => {
+            // Update local order data
+            const index = allOrders.findIndex(order => order.id === currentlyEditingOrder.id);
+            if (index !== -1) {
+                allOrders[index] = updatedOrder;
+            }
+            
+            alert('✅ Bill updated successfully!');
+            closeEditBillModal();
+            
+            // Refresh display
+            displayOrders();
+            updateStats();
+        })
+        .catch(error => {
+            console.error('Update bill error:', error);
+            alert('❌ Failed to update bill: ' + error.message);
+        })
+        .finally(() => {
+            startAutoRefresh();
+        });
+    }
+}
+  </script>
 </body>
 </html>
