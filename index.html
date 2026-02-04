@@ -9,6 +9,36 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
   <style>
+/* Container ko center karne ke liye */
+.header-container {
+    text-align: center;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+/* Link ko style karne ke liye */
+.cafe-link {
+    font-size: 40px;
+    font-weight: bold;
+    color: white;
+    text-decoration: none; /* Underline hatane ke liye */
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+/* Hover effect: jab mouse le jayein toh thoda bada dikhe */
+.cafe-link:hover {
+    transform: scale(1.05);
+    color: #f1f1f1;
+}
+
+.tagline {
+    color: #FFD700; /* Gold color jaisa image me hai */
+    font-style: italic;
+    margin-top: 10px;
+}
+
+
     * {
       margin: 0;
       padding: 0;
@@ -759,7 +789,7 @@
   </style>
 </head>
 <body>
-  <a href="index.html"class="back-to-menu" id="backToMenu">←</a>
+ 
   
   <!-- NEW: Auto-refresh indicator -->
   <div class="refresh-indicator" id="refreshIndicator">
@@ -767,13 +797,18 @@
     <span>Auto-refresh in <span id="refreshCountdown">10</span>s</span>
   </div>
 
-  <h1>🍽️ MR.T Cafe</h1>
-  <p class="tagline">Owner Dashboard</p>
-  
-  <!-- NEW: Last updated timestamp -->
+<div class="header-container">
+    <a href="index.html"class="cafe-link" class="cafe-link" id="backToMenu"><span class="icon">🍽️</span> MR.T Cafe
+</a>
+    <p class="tagline">A Taste of Home, Away from Home</p>
+      <p class="tagline">Owner Dashboard</p>
+       <!-- NEW: Last updated timestamp -->
   <div class="last-updated" id="lastUpdated">
     Last updated: <span id="lastUpdatedTime">Never</span>
   </div>
+</div>
+  
+ 
 
   <div class="login-container" id="loginContainer">
     <div class="login-box">
@@ -874,7 +909,7 @@
     let currentFilter = 'all';
     let refreshTimer;
     let countdownTimer;
-    let secondsUntilRefresh = 10;
+    let secondsUntilRefresh = 5;
     let currentlyEditingOrder = null;
     
     // List of Categories from index.html
@@ -1727,79 +1762,113 @@ function deleteOrder(orderId) {
 }
 
 
-    // Function to print order receipt
-    function printOrderReceipt(orderId) {
-      const order = findOrderById(orderId);
-      if (!order) {
-        alert("Order not found!");
-        return;
-      }
-      
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      
-      doc.setFontSize(20);
-      doc.setTextColor(40, 40, 40);
-      doc.text('MR.T Cafe - Order Receipt', 105, 20, { align: 'center' });
-
-      doc.setFontSize(12);
-      doc.text(`Order Number: ${order.orderNumber} (${order.type})`, 20, 40);
-      doc.text(`Location: ${order.customerName}`, 20, 50);
-      
-      let startY = 60;
-      
-      const locationLabel = order.type === 'Delivery' ? 'Hostel' : 'Table No.';
-      
-      doc.text(`${locationLabel}: ${order.tableNumber}`, 20, startY);
-      startY += 10;
-      
-      if (order.contactNumber && order.contactNumber !== 'N/A') {
-        doc.text(`Contact No.: ${order.contactNumber}`, 20, startY);
-        startY += 10;
-      }
-      
-      doc.text(`Date: ${order.date} ${order.time}`, 20, startY);
-      doc.text(`Status: Confirmed ✓`, 20, startY + 10);
-      
-      startY += 25;
-
-      const tableData = [];
-      let calculatedTotal = 0;
-
-      order.items.forEach(item => {
-        const itemPrice = (item.name === 'Delivery Charge') ? item.total : item.price; 
-        calculatedTotal += item.total;
-        
-        tableData.push([
-          item.name,
-          (item.name === 'Delivery Charge' ? '' : item.quantity.toString()), 
-          `${itemPrice}`,
-          `${item.total}`
-        ]);
-      });
-      
-      const finalTotal = order.total;
-
-      doc.autoTable({
-        head: [['Item', 'Qty', 'Price', 'Total']],
-        body: tableData,
-        startY: startY,
-        theme: 'grid',
-        headStyles: { fillColor: [145, 77, 100] }
-      });
-
-      const finalY = doc.lastAutoTable.finalY + 10;
-      doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.text(`Grand Total: ${finalTotal}`, doc.internal.pageSize.width - 10, finalY, { align: 'right' });
-
-      doc.setFontSize(10);
-      doc.setFont(undefined, 'normal');
-      doc.text('Thank you for your order! - MR.T Cafe', 105, finalY + 20, { align: 'center' });
-
-      doc.autoPrint();
-      window.open(doc.output('bloburl'), '_blank');
+ // UPDATED: Receipt printing optimized for Thermal Printers (Auto-height to remove white space)
+  function printOrderReceipt(orderId) {
+    const order = findOrderById(orderId);
+    if (!order) {
+      alert("Order not found!");
+      return;
     }
+    
+    const { jsPDF } = window.jspdf;
+    
+    // Step 1: Calculate dynamic height based on number of items
+    // Base height (Header + Info + Footer) = 65mm approximate
+    // Each item row = ~7mm
+    const itemRowsHeight = order.items.length * 7;
+    const dynamicHeight = 65 + itemRowsHeight; 
+
+    // Step 2: Create PDF with calculated height
+    const doc = new jsPDF({
+      unit: 'mm',
+      format: [80, dynamicHeight] // 80mm width standard thermal, height is now dynamic
+    });
+
+    const margin = 5;
+    let currentY = 10;
+
+    // Header: MR.T Cafe
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.text('MR.T Cafe', 40, currentY, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    currentY += 5;
+    doc.text('Order Receipt', 40, currentY, { align: 'center' });
+
+    // Divider line
+    currentY += 3;
+    doc.setLineWidth(0.1);
+    doc.line(margin, currentY, 75, currentY);
+
+    // Order Details
+    currentY += 5;
+    doc.setFontSize(8);
+    doc.text(`Order: #${order.orderNumber} (${order.type})`, margin, currentY);
+    
+    currentY += 4;
+    const locationLabel = order.type === 'Delivery' ? 'Hostel' : 'Table';
+    doc.text(`${locationLabel}: ${order.tableNumber}`, margin, currentY);
+    
+    currentY += 4;
+    doc.text(`Loc: ${order.customerName}`, margin, currentY);
+    
+    if (order.contactNumber && order.contactNumber !== 'N/A') {
+      currentY += 4;
+      doc.text(`Contact: ${order.contactNumber}`, margin, currentY);
+    }
+    
+    currentY += 4;
+    doc.text(`Date: ${order.date} ${order.time}`, margin, currentY);
+    
+    // Items Table
+    currentY += 2;
+    const tableData = order.items.map(item => [
+      item.name,
+      item.name === 'Delivery Charge' ? '-' : item.quantity.toString(),
+      `${item.total}`
+    ]);
+
+    doc.autoTable({
+      body: tableData,
+      columns: [
+        { header: 'Item', dataKey: 0 },
+        { header: 'Qty', dataKey: 1 },
+        { header: 'Amt', dataKey: 2 }
+      ],
+      startY: currentY,
+      margin: { left: margin, right: margin },
+      theme: 'plain',
+      styles: { fontSize: 7, cellPadding: 1 },
+      columnStyles: {
+        0: { cellWidth: 45 },
+        1: { cellWidth: 10, halign: 'center' },
+        2: { cellWidth: 15, halign: 'right' }
+      },
+      headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold' }
+    });
+
+    // Total Section
+    let finalY = doc.lastAutoTable.finalY + 5;
+    doc.line(margin, finalY, 75, finalY); // Divider
+    
+    finalY += 5;
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Grand Total: RS. ${order.total}`, 75, finalY, { align: 'right' });
+
+    // Footer
+    finalY += 8;
+    doc.setFontSize(7);
+    doc.setFont(undefined, 'italic');
+    doc.text('Thank you for visiting! - MR.T Cafe', 40, finalY, { align: 'center' });
+
+    // Auto Print Command
+    doc.autoPrint();
+    window.open(doc.output('bloburl'), '_blank');
+  }
+
 
     // Enter key for password and initial setup
     document.addEventListener('DOMContentLoaded', function() {
