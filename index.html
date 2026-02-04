@@ -1894,49 +1894,67 @@ function deleteOrder(orderId) {
     });
     
 
-    // Function to update bill on server
+  // Function to update bill on server and dashboard
 function updateBill() {
     if (!currentlyEditingOrder) return;
     
-    if (confirm('Are you sure you want to update this bill? This will modify the order on the server.')) {
-        stopAutoRefresh();
+    // UI mein loading dikhane ke liye button disable karein
+    const saveBtn = document.querySelector('#editBillModal .add-btn[onclick="updateBill()"]');
+    const originalText = saveBtn.textContent;
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Updating... ⏳';
+
+    // Server par updated order data bhejein
+    fetch(`${API_BASE_URL}/${currentlyEditingOrder.id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            items: currentlyEditingOrder.items,
+            total: currentlyEditingOrder.total,
+            // Baaki fields ko as-is rakhein taaki wo delete na ho jayein
+            confirmed: currentlyEditingOrder.confirmed,
+            orderNumber: currentlyEditingOrder.orderNumber,
+            customerName: currentlyEditingOrder.customerName,
+            tableNumber: currentlyEditingOrder.tableNumber,
+            type: currentlyEditingOrder.type,
+            contactNumber: currentlyEditingOrder.contactNumber || 'N/A'
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Server update failed with status: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(updatedOrder => {
+        // 1. Local array (allOrders) mein data update karein
+        const index = allOrders.findIndex(order => order.id === updatedOrder.id);
+        if (index !== -1) {
+            allOrders[index] = updatedOrder;
+        }
         
-        // Send update request to server
-        fetch(`${API_BASE_URL}/${currentlyEditingOrder.id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(currentlyEditingOrder)
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Server returned status: ' + response.status);
-            }
-            return response.json();
-        })
-        .then(updatedOrder => {
-            // Update local order data
-            const index = allOrders.findIndex(order => order.id === currentlyEditingOrder.id);
-            if (index !== -1) {
-                allOrders[index] = updatedOrder;
-            }
-            
-            alert('✅ Bill updated successfully!');
-            closeEditBillModal();
-            
-            // Refresh display
-            displayOrders();
-            updateStats();
-        })
-        .catch(error => {
-            console.error('Update bill error:', error);
-            alert('❌ Failed to update bill: ' + error.message);
-        })
-        .finally(() => {
-            startAutoRefresh();
-        });
-    }
+        // 2. Modal ko band karein aur variables clean karein
+        closeEditBillModal();
+        
+        // 3. Dashboard ka display aur stats refresh karein
+        displayOrders();
+        updateStats();
+        
+        alert('✅ Bill successfully update ho gaya hai!');
+    })
+    .catch(error => {
+        console.error('Update bill error:', error);
+        alert('❌ Bill update nahi ho paya: ' + error.message);
+    })
+    .finally(() => {
+        // Button ko wapas normal karein
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+        // Auto-refresh wapas start karein
+        startAutoRefresh();
+    });
 }
   </script>
 </body>
