@@ -1762,112 +1762,227 @@ function deleteOrder(orderId) {
 }
 
 
- // UPDATED: Receipt printing optimized for Thermal Printers (Auto-height to remove white space)
-  function printOrderReceipt(orderId) {
+//  // UPDATED: Receipt printing optimized for Thermal Printers (Auto-height to remove white space)
+//   function printOrderReceipt(orderId) {
+//     const order = findOrderById(orderId);
+//     if (!order) {
+//       alert("Order not found!");
+//       return;
+//     }
+    
+//     const { jsPDF } = window.jspdf;
+    
+//     // Step 1: Calculate dynamic height based on number of items
+//     // Base height (Header + Info + Footer) = 65mm approximate
+//     // Each item row = ~7mm
+//     const itemRowsHeight = order.items.length * 7;
+//     const dynamicHeight = 65 + itemRowsHeight; 
+
+//     // Step 2: Create PDF with calculated height
+//     const doc = new jsPDF({
+//       unit: 'mm',
+//       format: [80, dynamicHeight] // 80mm width standard thermal, height is now dynamic
+//     });
+
+//     const margin = 5;
+//     let currentY = 10;
+
+//     // Header: MR.T Cafe
+//     doc.setFontSize(14);
+//     doc.setFont(undefined, 'bold');
+//     doc.text('MR.T Cafe', 40, currentY, { align: 'center' });
+    
+//     doc.setFontSize(10);
+//     doc.setFont(undefined, 'normal');
+//     currentY += 5;
+//     doc.text('Order Receipt', 40, currentY, { align: 'center' });
+
+//     // Divider line
+//     currentY += 3;
+//     doc.setLineWidth(0.1);
+//     doc.line(margin, currentY, 75, currentY);
+
+//     // Order Details
+//     currentY += 5;
+//     doc.setFontSize(8);
+//     doc.text(`Order: #${order.orderNumber} (${order.type})`, margin, currentY);
+    
+//     currentY += 4;
+//     const locationLabel = order.type === 'Delivery' ? 'Hostel' : 'Table';
+//     doc.text(`${locationLabel}: ${order.tableNumber}`, margin, currentY);
+    
+//     currentY += 4;
+//     doc.text(`Loc: ${order.customerName}`, margin, currentY);
+    
+//     if (order.contactNumber && order.contactNumber !== 'N/A') {
+//       currentY += 4;
+//       doc.text(`Contact: ${order.contactNumber}`, margin, currentY);
+//     }
+    
+//     currentY += 4;
+//     doc.text(`Date: ${order.date} ${order.time}`, margin, currentY);
+    
+//     // Items Table
+//     currentY += 2;
+//     const tableData = order.items.map(item => [
+//       item.name,
+//       item.name === 'Delivery Charge' ? '-' : item.quantity.toString(),
+//       `${item.total}`
+//     ]);
+
+//     doc.autoTable({
+//       body: tableData,
+//       columns: [
+//         { header: 'Item', dataKey: 0 },
+//         { header: 'Qty', dataKey: 1 },
+//         { header: 'Amt', dataKey: 2 }
+//       ],
+//       startY: currentY,
+//       margin: { left: margin, right: margin },
+//       theme: 'plain',
+//       styles: { fontSize: 7, cellPadding: 1 },
+//       columnStyles: {
+//         0: { cellWidth: 45 },
+//         1: { cellWidth: 10, halign: 'center' },
+//         2: { cellWidth: 15, halign: 'right' }
+//       },
+//       headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold' }
+//     });
+
+//     // Total Section
+//     let finalY = doc.lastAutoTable.finalY + 5;
+//     doc.line(margin, finalY, 75, finalY); // Divider
+    
+//     finalY += 5;
+//     doc.setFontSize(10);
+//     doc.setFont(undefined, 'bold');
+//     doc.text(`Grand Total: RS. ${order.total}`, 75, finalY, { align: 'right' });
+
+//     // Footer
+//     finalY += 8;
+//     doc.setFontSize(7);
+//     doc.setFont(undefined, 'italic');
+//     doc.text('Thank you for visiting! - MR.T Cafe', 40, finalY, { align: 'center' });
+
+//     // Auto Print Command
+//     doc.autoPrint();
+//     window.open(doc.output('bloburl'), '_blank');
+//   }
+
+function printOrderReceipt(orderId) {
     const order = findOrderById(orderId);
     if (!order) {
-      alert("Order not found!");
-      return;
+        alert("Order not found!");
+        return;
     }
     
     const { jsPDF } = window.jspdf;
     
-    // Step 1: Calculate dynamic height based on number of items
-    // Base height (Header + Info + Footer) = 65mm approximate
-    // Each item row = ~7mm
-    const itemRowsHeight = order.items.length * 7;
-    const dynamicHeight = 65 + itemRowsHeight; 
+    // 88mm width aur dynamic height (jitne items utni lambi receipt)
+    const itemRowsHeight = order.items.length * 8;
+    const dynamicHeight = 90 + itemRowsHeight; 
 
-    // Step 2: Create PDF with calculated height
     const doc = new jsPDF({
-      unit: 'mm',
-      format: [80, dynamicHeight] // 80mm width standard thermal, height is now dynamic
+        unit: 'mm',
+        format: [88, dynamicHeight]
     });
 
     const margin = 5;
-    let currentY = 10;
+    const pageWidth = 88;
+    let currentY = 12;
 
-    // Header: MR.T Cafe
-    doc.setFontSize(14);
-    doc.setFont(undefined, 'bold');
-    doc.text('MR.T Cafe', 40, currentY, { align: 'center' });
+    // --- Header: Restaurant Name ---
+    doc.setFontSize(15);
+    doc.setFont("helvetica", "bold");
+    doc.text("MR.T CAFE", pageWidth / 2, currentY, { align: "center" });
     
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
     currentY += 5;
-    doc.text('Order Receipt', 40, currentY, { align: 'center' });
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "normal");
+    doc.text("A Taste of Home, Away from Home", pageWidth / 2, currentY, { align: "center" });
 
-    // Divider line
-    currentY += 3;
-    doc.setLineWidth(0.1);
-    doc.line(margin, currentY, 75, currentY);
-
-    // Order Details
-    currentY += 5;
-    doc.setFontSize(8);
-    doc.text(`Order: #${order.orderNumber} (${order.type})`, margin, currentY);
-    
+    // Divider Line
     currentY += 4;
+    doc.setLineWidth(0.5);
+    doc.line(margin, currentY, pageWidth - margin, currentY);
+
+    // --- Order Info Section ---
+    currentY += 7;
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.text(`ORDER ID: ${order.orderNumber}`, margin, currentY);
+    doc.text(`TYPE: ${order.type.toUpperCase()}`, pageWidth - margin, currentY, { align: "right" });
+
+    currentY += 4;
+    doc.setFont("helvetica", "normal");
     const locationLabel = order.type === 'Delivery' ? 'Hostel' : 'Table';
     doc.text(`${locationLabel}: ${order.tableNumber}`, margin, currentY);
-    
-    currentY += 4;
-    doc.text(`Loc: ${order.customerName}`, margin, currentY);
-    
-    if (order.contactNumber && order.contactNumber !== 'N/A') {
-      currentY += 4;
-      doc.text(`Contact: ${order.contactNumber}`, margin, currentY);
-    }
-    
-    currentY += 4;
-    doc.text(`Date: ${order.date} ${order.time}`, margin, currentY);
-    
-    // Items Table
-    currentY += 2;
-    const tableData = order.items.map(item => [
-      item.name,
-      item.name === 'Delivery Charge' ? '-' : item.quantity.toString(),
-      `${item.total}`
-    ]);
+    doc.text(`Date: ${order.date}`, pageWidth - margin, currentY, { align: "right" });
 
-    doc.autoTable({
-      body: tableData,
-      columns: [
-        { header: 'Item', dataKey: 0 },
-        { header: 'Qty', dataKey: 1 },
-        { header: 'Amt', dataKey: 2 }
-      ],
-      startY: currentY,
-      margin: { left: margin, right: margin },
-      theme: 'plain',
-      styles: { fontSize: 7, cellPadding: 1 },
-      columnStyles: {
-        0: { cellWidth: 45 },
-        1: { cellWidth: 10, halign: 'center' },
-        2: { cellWidth: 15, halign: 'right' }
-      },
-      headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold' }
+    currentY += 4;
+    doc.text(`Customer: ${order.customerName}`, margin, currentY);
+    doc.text(`Time: ${order.time}`, pageWidth - margin, currentY, { align: "right" });
+
+    // --- Items Table Header ---
+    currentY += 8;
+    doc.setFillColor(240, 240, 240); // Light grey background for header
+    doc.rect(margin, currentY - 4, pageWidth - (margin * 2), 6, 'F');
+    
+    doc.setFont("helvetica", "bold");
+    doc.text("SL", margin + 2, currentY);
+    doc.text("ITEM DESCRIPTION", margin + 12, currentY);
+    doc.text("QTY", pageWidth - margin - 15, currentY, { align: "right" });
+    doc.text("AMT", pageWidth - margin - 2, currentY, { align: "right" });
+
+    // --- Items List ---
+    currentY += 4;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    
+    order.items.forEach((item, index) => {
+        currentY += 7;
+        doc.text(`${index + 1}.`, margin + 2, currentY);
+        
+        // Item name handle (agar naam bahut bada hai toh)
+        const itemName = item.name.length > 25 ? item.name.substring(0, 22) + "..." : item.name;
+        doc.text(itemName, margin + 12, currentY);
+        
+        doc.text(`${item.quantity}`, pageWidth - margin - 15, currentY, { align: "right" });
+        doc.text(`${item.total}`, pageWidth - margin - 2, currentY, { align: "right" });
+        
+        // Dotted line after each item
+        doc.setLineWidth(0.1);
+        doc.setLineDashPattern([1, 1], 0);
+        doc.line(margin, currentY + 2, pageWidth - margin, currentY + 2);
+        doc.setLineDashPattern([], 0);
     });
 
-    // Total Section
-    let finalY = doc.lastAutoTable.finalY + 5;
-    doc.line(margin, finalY, 75, finalY); // Divider
+    // --- Summary Section ---
+    currentY += 8;
+    doc.setLineWidth(0.5);
+    doc.line(pageWidth / 2, currentY, pageWidth - margin, currentY); // Half line for total
     
-    finalY += 5;
+    currentY += 6;
     doc.setFontSize(10);
-    doc.setFont(undefined, 'bold');
-    doc.text(`Grand Total: RS. ${order.total}`, 75, finalY, { align: 'right' });
+    doc.setFont("helvetica", "bold");
+    doc.text("GRAND TOTAL:", margin + 30, currentY);
+    doc.text(`RS. ${order.total}`, pageWidth - margin, currentY, { align: "right" });
 
-    // Footer
-    finalY += 8;
-    doc.setFontSize(7);
-    doc.setFont(undefined, 'italic');
-    doc.text('Thank you for visiting! - MR.T Cafe', 40, finalY, { align: 'center' });
+    // --- Footer ---
+    currentY += 10;
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "italic");
+    doc.text("Thank You! Visit Again", pageWidth / 2, currentY, { align: "center" });
+    
+    currentY += 4;
+    doc.setFont("helvetica", "normal");
+    doc.text("Powered by MR.T Cafe System", pageWidth / 2, currentY, { align: "center" });
 
-    // Auto Print Command
+    // Print & Preview
     doc.autoPrint();
-    window.open(doc.output('bloburl'), '_blank');
-  }
+    const blobUrl = doc.output('bloburl');
+    window.open(blobUrl, '_blank');
+}
 
 
     // Enter key for password and initial setup
