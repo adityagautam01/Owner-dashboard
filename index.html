@@ -808,8 +808,6 @@
   </div>
 </div>
   
- 
-
   <div class="login-container" id="loginContainer">
     <div class="login-box">
       <h2>🔒 Owner Access</h2>
@@ -1880,8 +1878,9 @@ function printOrderReceipt(orderId) {
     const { jsPDF } = window.jspdf;
     
     // Dynamic Height Calculation: Taki extra blank space na aaye
-    const baseHeight = 72; 
-    const itemRowsHeight = order.items.length * 7.5;
+    // Base height ko kam kiya gaya hai (72 se 60) blank space hatane ke liye
+    const baseHeight = 60; 
+    const itemRowsHeight = order.items.length * 7; // Spacing per item thodi kam ki hai
     const dynamicHeight = baseHeight + itemRowsHeight; 
 
     const doc = new jsPDF({
@@ -1891,97 +1890,98 @@ function printOrderReceipt(orderId) {
 
     const margin = 5;
     const pageWidth = 80;
-    let currentY = 10;
+    
+    // Yaha currentY ko 10 se badal kar 5 kar diya hai taaki top blank space khatam ho jaye
+    let currentY = 5; 
 
     // --- Header ---
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
+    doc.setFontSize(14); // Size thoda chota kiya professional look ke liye
     doc.text("MR.T CAFE", pageWidth / 2, currentY, { align: "center" });
     
-    currentY += 5;
-    doc.setFontSize(8);
+    currentY += 4;
+    doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
     doc.text("A Taste of Home, Away from Home", pageWidth / 2, currentY, { align: "center" });
 
     // Strong Divider Line
-    currentY += 4;
-    doc.setLineWidth(0.4);
+    currentY += 3;
+    doc.setLineWidth(0.3);
     doc.line(margin, currentY, pageWidth - margin, currentY);
 
     // --- Order Details Section ---
-    currentY += 6;
-    doc.setFontSize(10);
+    currentY += 5;
+    doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
     doc.text(`ORDER ID: ${order.orderNumber}`, margin, currentY);
     doc.text(`TYPE: ${order.type.toUpperCase()}`, pageWidth - margin, currentY, { align: "right" });
 
-    currentY += 4.5;
-    doc.setFontSize(9);
+    currentY += 4;
+    doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
     const locLabel = order.type === 'Delivery' ? 'Hostel' : 'Table';
     doc.text(`${locLabel}: ${order.tableNumber}`, margin, currentY);
     doc.text(`Date: ${order.date}`, pageWidth - margin, currentY, { align: "right" });
 
-    currentY += 4.5;
+    currentY += 4;
     doc.text(`Customer: ${order.customerName}`, margin, currentY);
     doc.text(`Time: ${order.time}`, pageWidth - margin, currentY, { align: "right" });
 
     // --- Table Header ---
-    currentY += 8;
+    currentY += 6;
     doc.setFont("helvetica", "bold");
     doc.text("SL", margin, currentY);
     doc.text("ITEM DESCRIPTION", margin + 7, currentY);
-    doc.text("QTY", pageWidth - 22, currentY, { align: "right" });
+    doc.text("QTY", pageWidth - 20, currentY, { align: "right" });
     doc.text("AMT", pageWidth - margin, currentY, { align: "right" });
 
     // Header Bottom Line
     currentY += 2;
-    doc.setLineWidth(0.3);
+    doc.setLineWidth(0.2);
     doc.line(margin, currentY, pageWidth - margin, currentY);
 
     // --- Items List ---
-    currentY += 5.5;
+    currentY += 5;
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
+    doc.setFontSize(8);
     
     order.items.forEach((item, index) => {
-        // Handle long item names
-        const itemName = item.name.length > 22 ? item.name.substring(0, 20) + ".." : item.name;
+        const itemName = item.name.length > 25 ? item.name.substring(0, 23) + ".." : item.name;
         
         doc.text(`${index + 1}.`, margin, currentY);
         doc.text(itemName, margin + 7, currentY);
-        doc.text(`${item.quantity}`, pageWidth - 22, currentY, { align: "right" });
+        doc.text(`${item.quantity}`, pageWidth - 20, currentY, { align: "right" });
         doc.text(`${item.total}`, pageWidth - margin, currentY, { align: "right" });
         
         currentY += 4;
-        // Dotted line after each item (Professional Look)
-        doc.setFontSize(7);
+        // Dotted line spacing thodi kam ki hai
+        doc.setFontSize(6);
         doc.setTextColor(150);
         doc.text("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -", pageWidth / 2, currentY, { align: "center" });
         doc.setTextColor(0);
-        doc.setFontSize(9);
-        currentY += 3.5;
+        doc.setFontSize(8);
+        currentY += 3;
     });
 
     // --- Summary Section ---
-    currentY += 2;
-    doc.setLineWidth(0.5);
-    doc.line(pageWidth / 2 - 5, currentY, pageWidth - margin, currentY); 
+    currentY += 1;
+    doc.setLineWidth(0.4);
+    doc.line(pageWidth / 2, currentY, pageWidth - margin, currentY); 
     
-    currentY += 7;
-    doc.setFontSize(12);
+    currentY += 6;
+    doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
     doc.text("GRAND TOTAL:", margin + 15, currentY);
     doc.text(`RS. ${order.total}`, pageWidth - margin, currentY, { align: "right" });
 
     // --- Footer ---
-    currentY += 12;
-    doc.setFontSize(9);
+    currentY += 8;
+    doc.setFontSize(8);
     doc.setFont("helvetica", "italic");
     doc.text("Thank You! Visit Again", pageWidth / 2, currentY, { align: "center" });
     
-    currentY += 4.5;
-    doc.setFontSize(7.5);
+    currentY += 4;
+    doc.setFontSize(6);
     doc.setFont("helvetica", "normal");
     doc.text("Powered by MR.T Cafe System", pageWidth / 2, currentY, { align: "center" });
 
@@ -1990,7 +1990,6 @@ function printOrderReceipt(orderId) {
     const blobUrl = doc.output('bloburl');
     window.open(blobUrl, '_blank');
 }
-
 
     // Enter key for password and initial setup
     document.addEventListener('DOMContentLoaded', function() {
