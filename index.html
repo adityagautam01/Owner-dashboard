@@ -21,7 +21,7 @@
     font-size: 40px;
     font-weight: bold;
     color: white;
-    text-decoration: none; /* Underline hatane ke liye */
+    text-decoration: none;
     display: inline-block;
     transition: transform 0.3s ease;
 }
@@ -33,11 +33,10 @@
 }
 
 .tagline {
-    color: #FFD700; /* Gold color jaisa image me hai */
+    color: #FFD700;
     font-style: italic;
     margin-top: 10px;
 }
-
 
     * {
       margin: 0;
@@ -71,7 +70,6 @@
       text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
     }
 
-    /* NEW: Auto-refresh indicator */
     .refresh-indicator {
       position: fixed;
       top: 20px;
@@ -107,7 +105,6 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Login Screen */
     .login-container {
       display: flex;
       justify-content: center;
@@ -185,7 +182,6 @@
       display: block;
     }
 
-    /* Dashboard */
     .dashboard {
       display: none;
       max-width: 1200px;
@@ -243,7 +239,6 @@
       transform: translateY(-2px);
     }
     
-    /* NEW: Add Item Button */
     .add-item-btn {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
@@ -450,7 +445,6 @@
       transform: translateY(-2px);
     }
     
-    /* NEW: Edit Bill Button */
     .edit-bill-btn {
       background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
       color: white;
@@ -514,7 +508,6 @@
         font-weight: bold;
     }
     
-    /* NEW: Last updated timestamp */
     .last-updated {
       text-align: center;
       color: #999;
@@ -523,7 +516,6 @@
       margin-bottom: 20px;
     }
     
-    /* Modal Styles */
     .modal {
         display: none;
         position: fixed;
@@ -628,7 +620,6 @@
         border: 1px solid #f5c6cb;
     }
     
-    /* Edit Bill Modal Styles */
     .edit-bill-items-list {
       margin: 15px 0;
       max-height: 300px;
@@ -790,19 +781,15 @@
 </head>
 <body>
  
-  
-  <!-- NEW: Auto-refresh indicator -->
   <div class="refresh-indicator" id="refreshIndicator">
     <div class="spinner"></div>
     <span>Auto-refresh in <span id="refreshCountdown">10</span>s</span>
   </div>
 
 <div class="header-container">
-    <a href="index.html"class="cafe-link" class="cafe-link" id="backToMenu"><span class="icon">🍽️</span> MR.T Cafe
-</a>
+    <a href="index.html" class="cafe-link" id="backToMenu"><span class="icon">🍽️</span> MR.T Cafe</a>
     <p class="tagline">A Taste of Home, Away from Home</p>
       <p class="tagline">Owner Dashboard</p>
-       <!-- NEW: Last updated timestamp -->
   <div class="last-updated" id="lastUpdated">
     Last updated: <span id="lastUpdatedTime">Never</span>
   </div>
@@ -820,7 +807,6 @@
     </div>
   </div>
 
-  <!-- Add Item Modal -->
   <div class="modal" id="addItemModal">
     <div class="modal-content">
       <h2>➕ Add New Menu Item</h2>
@@ -846,12 +832,10 @@
     </div>
   </div>
   
-  <!-- Edit Bill Modal -->
   <div class="modal" id="editBillModal">
     <div class="modal-content">
       <h2>✏️ Edit Bill</h2>
       <div id="editBillContent">
-        <!-- Dynamic content will be loaded here -->
       </div>
     </div>
   </div>
@@ -896,12 +880,12 @@
   </div>
 
   <script>
-    const OWNER_PASSWORD = '5555'; // 🔐 Change this password as needed
-    const API_BASE_URL = 'https://mrt-cafe-api.onrender.com/api/orders'; // Server API Endpoint
-    const MENU_API_URL = 'https://mrt-cafe-api.onrender.com/api/menu'; // NEW: Menu API Endpoint
+    const OWNER_PASSWORD = '5555';
+    const API_BASE_URL = 'https://mrt-cafe-api.onrender.com/api/orders';
+    const MENU_API_URL = 'https://mrt-cafe-api.onrender.com/api/menu';
     const SESSION_KEY = 'mrtCafeOwnerSession';
-    const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-    const REFRESH_INTERVAL = 10000; // 10 seconds for auto-refresh
+    const SESSION_DURATION = 24 * 60 * 60 * 1000;
+    const REFRESH_INTERVAL = 10000;
     
     let allOrders = [];
     let currentFilter = 'all';
@@ -910,7 +894,6 @@
     let secondsUntilRefresh = 5;
     let currentlyEditingOrder = null;
     
-    // List of Categories from index.html
     const predefinedCategories = [
         { name: 'Chai Shai', emoji: '☕' },
         { name: 'Coffee', emoji: '☕' },
@@ -946,12 +929,10 @@
         { name: 'Desserts', emoji: '🍰' }
     ];
 
-    // Helper function to find order by ID
     function findOrderById(orderId) {
         return allOrders.find(order => order.id === orderId);
     }
     
-    // Function to populate the category dropdown
     function populateCategorySelector() {
         const selector = document.getElementById('newItemCategoryName');
         selector.innerHTML = '<option value="" disabled selected>Select a category...</option>'; 
@@ -964,19 +945,16 @@
         });
     }
 
-    // NEW: Function to update last updated timestamp
     function updateLastUpdatedTime() {
       const now = new Date();
       const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       document.getElementById('lastUpdatedTime').textContent = timeString;
     }
 
-    // NEW: Function to update countdown display
     function updateCountdownDisplay(seconds) {
       document.getElementById('refreshCountdown').textContent = seconds;
     }
 
-    // NEW: Function to start countdown
     function startCountdown() {
       secondsUntilRefresh = 10;
       updateCountdownDisplay(secondsUntilRefresh);
@@ -994,7 +972,6 @@
       }, 1000);
     }
 
-    // NEW: Function to show/hide refresh indicator
     function toggleRefreshIndicator(show) {
       const indicator = document.getElementById('refreshIndicator');
       if (show) {
@@ -1009,7 +986,6 @@
       }
     }
 
-    // Toggle Add Item Modal
     function showAddItemModal(show) {
         const modal = document.getElementById('addItemModal');
         const form = document.getElementById('addItemForm');
@@ -1032,7 +1008,6 @@
         }
     }
     
-    // Function to show a temporary status message in the modal
     function showItemStatus(message, isError = false) {
       const statusDiv = document.getElementById('itemStatusMessage');
       statusDiv.textContent = message;
@@ -1044,7 +1019,6 @@
       }, 7000);
     }
 
-    // Function to handle adding a new item via API
     document.getElementById('addItemForm').addEventListener('submit', function(e) {
         e.preventDefault();
         addItemToMenu();
@@ -1068,7 +1042,6 @@
             emoji: category.emoji 
         };
         
-        // Disable button during API call
         const addButton = document.querySelector('.add-btn');
         addButton.disabled = true;
         addButton.textContent = 'Adding...';
@@ -1125,7 +1098,6 @@
         });
     }
     
-    // Function to show Edit Bill modal
     function showEditBillModal(orderId) {
         currentlyEditingOrder = findOrderById(orderId);
         if (!currentlyEditingOrder) {
@@ -1136,11 +1108,9 @@
         const modal = document.getElementById('editBillModal');
         const contentDiv = document.getElementById('editBillContent');
         
-        // Stop auto-refresh while editing
         stopAutoRefresh();
         toggleRefreshIndicator(false);
         
-        // Create edit bill content
         let itemsHTML = '';
         currentlyEditingOrder.items.forEach((item, index) => {
             itemsHTML += `
@@ -1195,19 +1165,16 @@
         document.body.style.overflow = 'hidden';
     }
     
-    // Function to close Edit Bill modal
     function closeEditBillModal() {
         const modal = document.getElementById('editBillModal');
         modal.classList.remove('active');
         document.body.style.overflow = 'auto';
         currentlyEditingOrder = null;
         
-        // Restart auto-refresh
         startAutoRefresh();
         toggleRefreshIndicator(true);
     }
     
-    // Function to edit an existing item
     function editItem(itemIndex) {
         if (!currentlyEditingOrder) return;
         
@@ -1219,30 +1186,24 @@
             item.quantity = quantity;
             item.total = item.price * quantity;
             
-            // Recalculate order total
             recalculateOrderTotal();
             
-            // Update UI
             updateEditBillUI();
         }
     }
     
-    // Function to remove an item
     function removeItem(itemIndex) {
         if (!currentlyEditingOrder) return;
         
         if (confirm('Are you sure you want to remove this item from the bill?')) {
             currentlyEditingOrder.items.splice(itemIndex, 1);
             
-            // Recalculate order total
             recalculateOrderTotal();
             
-            // Update UI
             updateEditBillUI();
         }
     }
     
-    // Function to add a new item to the bill
     function addNewItemToBill() {
         if (!currentlyEditingOrder) return;
         
@@ -1255,16 +1216,13 @@
             return;
         }
         
-        // Check if item already exists
         const existingItemIndex = currentlyEditingOrder.items.findIndex(item => item.name === name);
         
         if (existingItemIndex !== -1) {
-            // Update existing item quantity
             currentlyEditingOrder.items[existingItemIndex].quantity += quantity;
             currentlyEditingOrder.items[existingItemIndex].total = 
                 currentlyEditingOrder.items[existingItemIndex].price * currentlyEditingOrder.items[existingItemIndex].quantity;
         } else {
-            // Add new item
             currentlyEditingOrder.items.push({
                 name: name,
                 price: price,
@@ -1273,19 +1231,15 @@
             });
         }
         
-        // Recalculate order total
         recalculateOrderTotal();
         
-        // Clear inputs
         document.getElementById('newItemNameInput').value = '';
         document.getElementById('newItemPriceInput').value = '';
         document.getElementById('newItemQuantityInput').value = '1';
         
-        // Update UI
         updateEditBillUI();
     }
     
-    // Function to recalculate order total
     function recalculateOrderTotal() {
         if (!currentlyEditingOrder) return;
         
@@ -1297,14 +1251,12 @@
         currentlyEditingOrder.total = total;
     }
     
-    // Function to update edit bill UI
     function updateEditBillUI() {
         if (!currentlyEditingOrder) return;
         
         const itemsList = document.getElementById('editBillItemsList');
         const totalDiv = document.getElementById('editBillTotal');
         
-        // Update items list
         let itemsHTML = '';
         currentlyEditingOrder.items.forEach((item, index) => {
             itemsHTML += `
@@ -1320,93 +1272,17 @@
                 </div>
             `;
         });
-        orderCard.innerHTML = `
-  <div class="order-card-header">
-    <div>
-      <span class="order-number">Order #${order.orderNumber} ${isDeliveryOrder ? ' (🛵 Delivery)' : ' (🏠 Dine-In)'}</span>
-      ${statusBadge}
-    </div>
-    <span class="order-time">${order.date} ${order.time}</span>
-  </div>
-  <div class="customer-details">
-    <p><strong>Order Type:</strong> ${order.type}</p>
-    <p><strong>Location:</strong> ${order.customerName}</p>
-    ${tableOrRoomDisplay}
-    ${order.contactNumber && order.contactNumber !== 'N/A' ? `<p><strong>Contact No.:</strong> ${order.contactNumber}</p>` : ''}
-  </div>
-  <div class="order-items-list">
-    ${itemsHTML}
-  </div>
-  <div class="order-total">Total: ₹${order.total}</div>
-  <div class="order-actions">
-    ${confirmButton}
-    ${editBillButton}
-    <button class="delete-order-btn" onclick="deleteOrder('${order.id}')">🗑️ Delete</button>
-  </div>
-`;
+        
+        itemsList.innerHTML = itemsHTML;
+        totalDiv.textContent = `Current Total: ₹${currentlyEditingOrder.total}`;
     }
     
-    // Function to update bill on server
-    function updateBill() {
-        if (!currentlyEditingOrder) return;
-        
-        if (confirm('Are you sure you want to update this bill? This will modify the order on the server.')) {
-            // Send update request to server
-            fetch(`${API_BASE_URL}/${currentlyEditingOrder.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    items: currentlyEditingOrder.items,
-                    total: currentlyEditingOrder.total,
-                    // Preserve other fields
-                    confirmed: currentlyEditingOrder.confirmed,
-                    orderNumber: currentlyEditingOrder.orderNumber,
-                    customerName: currentlyEditingOrder.customerName,
-                    tableNumber: currentlyEditingOrder.tableNumber,
-                    contactNumber: currentlyEditingOrder.contactNumber,
-                    type: currentlyEditingOrder.type,
-                    date: currentlyEditingOrder.date,
-                    time: currentlyEditingOrder.time,
-                    timestamp: currentlyEditingOrder.timestamp
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to update bill on server');
-                }
-                return response.json();
-            })
-            .then(updatedOrder => {
-                // Update local order data
-                const index = allOrders.findIndex(order => order.id === currentlyEditingOrder.id);
-                if (index !== -1) {
-                    allOrders[index] = updatedOrder;
-                }
-                
-                alert('✅ Bill updated successfully!');
-                closeEditBillModal();
-                
-                // Refresh display
-                displayOrders();
-                updateStats();
-            })
-            .catch(error => {
-                console.error('Update bill error:', error);
-                alert('❌ Failed to update bill: ' + error.message);
-            });
-        }
-    }
-
-    // Function to start auto-refresh
     function startAutoRefresh() {
         stopAutoRefresh();
-        console.log('Auto-refresh started (5s interval)');
+        console.log('Auto-refresh started (10s interval)');
         refreshTimer = setInterval(loadOrders, REFRESH_INTERVAL);
     }
 
-    // Function to stop auto-refresh
     function stopAutoRefresh() {
         if (refreshTimer) {
             clearInterval(refreshTimer);
@@ -1416,7 +1292,6 @@
         toggleRefreshIndicator(false);
     }
 
-    // Check if already logged in
     function checkSession() {
       const session = localStorage.getItem(SESSION_KEY);
       if (session) {
@@ -1433,7 +1308,6 @@
       return false;
     }
 
-    // Login function
     function login() {
       const password = document.getElementById('ownerPassword').value;
       const errorDiv = document.getElementById('loginError');
@@ -1452,7 +1326,6 @@
       }
     }
 
-    // Logout function
     function logout() {
       stopAutoRefresh();
       localStorage.removeItem(SESSION_KEY);
@@ -1463,7 +1336,6 @@
       document.getElementById('lastUpdated').style.display = 'none';
     }
 
-    // Show dashboard
     function showDashboard() {
       document.getElementById('loginContainer').style.display = 'none';
       document.getElementById('dashboard').classList.add('active');
@@ -1473,7 +1345,6 @@
       startAutoRefresh();
     }
     
-    // API Call to Load Orders
     function loadOrders() {
       const ordersBody = document.getElementById('ordersBody');
       
@@ -1494,7 +1365,7 @@
 
           displayOrders(); 
           updateStats();
-          updateLastUpdatedTime(); // NEW: Update timestamp after successful load
+          updateLastUpdatedTime();
       })
       .catch(error => {
           console.error('Loading Orders Error:', error);
@@ -1508,7 +1379,6 @@
       });
     }
 
-    // Update statistics
     function updateStats() {
       const totalOrders = allOrders.length;
       const pending = allOrders.filter(o => !o.confirmed).length;
@@ -1522,11 +1392,9 @@
       document.getElementById('totalRevenue').textContent = `₹${totalRevenue}`;
     }
 
-    // Filter orders
     function filterOrders(event, filter) {
       currentFilter = filter;
       
-      // Update active tab
       document.querySelectorAll('.filter-tab').forEach(tab => {
         tab.classList.remove('active');
       });
@@ -1535,7 +1403,6 @@
       displayOrders();
     }
 
-    // Display orders
 function displayOrders() {
   const ordersBody = document.getElementById('ordersBody');
   
@@ -1586,7 +1453,6 @@ function displayOrders() {
       ? '<button class="confirm-order-btn confirmed" disabled>✓ Confirmed</button>'
       : `<button class="confirm-order-btn" onclick="confirmAndPrintOrder('${order.id}')">✓ Confirm & Print</button>`;
     
-    // NEW: Edit Bill Button
     const editBillButton = `<button class="edit-bill-btn" onclick="showEditBillModal('${order.id}')">✏️ Edit Bill</button>`;
       
     const tableOrRoomDisplay = isDeliveryOrder 
@@ -1620,73 +1486,8 @@ function displayOrders() {
     
     ordersBody.appendChild(orderCard);
   });
-
-
-      ordersBody.innerHTML = '';
-      
-      filteredOrders.forEach((order) => {
-        const orderCard = document.createElement('div');
-        orderCard.className = `order-card ${order.confirmed ? 'confirmed' : ''}`;
-        
-        let itemsHTML = '';
-        order.items.forEach(item => {
-            const isDeliveryCharge = item.name === 'Delivery Charge';
-            const rowClass = isDeliveryCharge ? 'order-item-row delivery-charge-row' : 'order-item-row';
-            
-            itemsHTML += `
-                <div class="${rowClass}">
-                <span>${item.name} ${!isDeliveryCharge ? '× ' + item.quantity : ''}</span>
-                <span>₹${item.total}</span>
-                </div>
-            `;
-        });
-
-        const statusBadge = order.confirmed 
-          ? '<span class="order-status confirmed">✓ Confirmed</span>'
-          : '<span class="order-status pending">⏳ Pending</span>';
-          
-        const isDeliveryOrder = order.type === 'Delivery';
-
-        const confirmButton = order.confirmed
-          ? '<button class="confirm-order-btn confirmed" disabled>✓ Confirmed</button>'
-          : `<button class="confirm-order-btn" onclick="confirmAndPrintOrder('${order.id}')">✓ Confirm & Print</button>`;
-        
-        // NEW: Edit Bill Button
-        const editBillButton = `<button class="edit-bill-btn" onclick="showEditBillModal('${order.id}')">✏️ Edit Bill</button>`;
-          
-        const tableOrRoomDisplay = isDeliveryOrder 
-            ? `<p><strong>Hostel:</strong> ${order.tableNumber}</p>`
-            : `<p><strong>Table No.:</strong> ${order.tableNumber}</p>`;
-
-        orderCard.innerHTML = `
-          <div class="order-card-header">
-            <div>
-              <span class="order-number">Order #${order.orderNumber} ${isDeliveryOrder ? ' (🛵 Delivery)' : ' (🏠 Dine-In)'}</span>
-              ${statusBadge}
-            </div>
-            <span class="order-time">${order.date} ${order.time}</span>
-          </div>
-          <div class="customer-details">
-            <p><strong>Order Type:</strong> ${order.type}</p>
-            <p><strong>Location:</strong> ${order.customerName}</p>
-            ${tableOrRoomDisplay}
-            ${order.contactNumber && order.contactNumber !== 'N/A' ? `<p><strong>Contact No.:</strong> ${order.contactNumber}</p>` : ''}
-          </div>
-          <div class="order-items-list">
-            ${itemsHTML}
-          </div>
-          <div class="order-total">Total: ₹${order.total}</div>
-          <div class="order-actions">
-            ${confirmButton}
-            ${editBillButton}
-          </div>
-        `;
-        
-        ordersBody.appendChild(orderCard);
-      });
-    }
+}
     
-    // Function to handle Confirmation and Printing
     function confirmAndPrintOrder(orderId) {
         if (confirm('Confirm this order and print the receipt?')) {
             stopAutoRefresh();
@@ -1720,8 +1521,6 @@ function displayOrders() {
         }
     }
 
-
-    // Function to delete an order
 function deleteOrder(orderId) {
     if (confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
         stopAutoRefresh();
@@ -1739,14 +1538,11 @@ function deleteOrder(orderId) {
             return response.json();
         })
         .then(data => {
-            // Remove order from local array
             allOrders = allOrders.filter(order => order.id !== orderId);
             
-            // Refresh display
             displayOrders();
             updateStats();
             
-            // Show success message
             alert('✅ Order deleted successfully!');
         })
         .catch(error => {
@@ -1759,115 +1555,6 @@ function deleteOrder(orderId) {
     }
 }
 
-
-//  // UPDATED: Receipt printing optimized for Thermal Printers (Auto-height to remove white space)
-//   function printOrderReceipt(orderId) {
-//     const order = findOrderById(orderId);
-//     if (!order) {
-//       alert("Order not found!");
-//       return;
-//     }
-    
-//     const { jsPDF } = window.jspdf;
-    
-//     // Step 1: Calculate dynamic height based on number of items
-//     // Base height (Header + Info + Footer) = 65mm approximate
-//     // Each item row = ~7mm
-//     const itemRowsHeight = order.items.length * 7;
-//     const dynamicHeight = 65 + itemRowsHeight; 
-
-//     // Step 2: Create PDF with calculated height
-//     const doc = new jsPDF({
-//       unit: 'mm',
-//       format: [80, dynamicHeight] // 80mm width standard thermal, height is now dynamic
-//     });
-
-//     const margin = 5;
-//     let currentY = 10;
-
-//     // Header: MR.T Cafe
-//     doc.setFontSize(14);
-//     doc.setFont(undefined, 'bold');
-//     doc.text('MR.T Cafe', 40, currentY, { align: 'center' });
-    
-//     doc.setFontSize(10);
-//     doc.setFont(undefined, 'normal');
-//     currentY += 5;
-//     doc.text('Order Receipt', 40, currentY, { align: 'center' });
-
-//     // Divider line
-//     currentY += 3;
-//     doc.setLineWidth(0.1);
-//     doc.line(margin, currentY, 75, currentY);
-
-//     // Order Details
-//     currentY += 5;
-//     doc.setFontSize(8);
-//     doc.text(`Order: #${order.orderNumber} (${order.type})`, margin, currentY);
-    
-//     currentY += 4;
-//     const locationLabel = order.type === 'Delivery' ? 'Hostel' : 'Table';
-//     doc.text(`${locationLabel}: ${order.tableNumber}`, margin, currentY);
-    
-//     currentY += 4;
-//     doc.text(`Loc: ${order.customerName}`, margin, currentY);
-    
-//     if (order.contactNumber && order.contactNumber !== 'N/A') {
-//       currentY += 4;
-//       doc.text(`Contact: ${order.contactNumber}`, margin, currentY);
-//     }
-    
-//     currentY += 4;
-//     doc.text(`Date: ${order.date} ${order.time}`, margin, currentY);
-    
-//     // Items Table
-//     currentY += 2;
-//     const tableData = order.items.map(item => [
-//       item.name,
-//       item.name === 'Delivery Charge' ? '-' : item.quantity.toString(),
-//       `${item.total}`
-//     ]);
-
-//     doc.autoTable({
-//       body: tableData,
-//       columns: [
-//         { header: 'Item', dataKey: 0 },
-//         { header: 'Qty', dataKey: 1 },
-//         { header: 'Amt', dataKey: 2 }
-//       ],
-//       startY: currentY,
-//       margin: { left: margin, right: margin },
-//       theme: 'plain',
-//       styles: { fontSize: 7, cellPadding: 1 },
-//       columnStyles: {
-//         0: { cellWidth: 45 },
-//         1: { cellWidth: 10, halign: 'center' },
-//         2: { cellWidth: 15, halign: 'right' }
-//       },
-//       headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold' }
-//     });
-
-//     // Total Section
-//     let finalY = doc.lastAutoTable.finalY + 5;
-//     doc.line(margin, finalY, 75, finalY); // Divider
-    
-//     finalY += 5;
-//     doc.setFontSize(10);
-//     doc.setFont(undefined, 'bold');
-//     doc.text(`Grand Total: RS. ${order.total}`, 75, finalY, { align: 'right' });
-
-//     // Footer
-//     finalY += 8;
-//     doc.setFontSize(7);
-//     doc.setFont(undefined, 'italic');
-//     doc.text('Thank you for visiting! - MR.T Cafe', 40, finalY, { align: 'center' });
-
-//     // Auto Print Command
-//     doc.autoPrint();
-//     window.open(doc.output('bloburl'), '_blank');
-//   }
-
-
 function printOrderReceipt(orderId) {
     const order = findOrderById(orderId);
     if (!order) {
@@ -1877,10 +1564,8 @@ function printOrderReceipt(orderId) {
     
     const { jsPDF } = window.jspdf;
     
-    // Dynamic Height Calculation: Taki extra blank space na aaye
-    // Base height ko kam kiya gaya hai (72 se 60) blank space hatane ke liye
-    const baseHeight = 60; 
-    const itemRowsHeight = order.items.length * 7; // Spacing per item thodi kam ki hai
+    const baseHeight = 52; 
+    const itemRowsHeight = order.items.length * 5.5; 
     const dynamicHeight = baseHeight + itemRowsHeight; 
 
     const doc = new jsPDF({
@@ -1891,12 +1576,10 @@ function printOrderReceipt(orderId) {
     const margin = 5;
     const pageWidth = 80;
     
-    // Yaha currentY ko 10 se badal kar 5 kar diya hai taaki top blank space khatam ho jaye
     let currentY = 5; 
 
-    // --- Header ---
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(14); // Size thoda chota kiya professional look ke liye
+    doc.setFontSize(14);
     doc.text("MR.T CAFE", pageWidth / 2, currentY, { align: "center" });
     
     currentY += 4;
@@ -1904,12 +1587,10 @@ function printOrderReceipt(orderId) {
     doc.setFont("helvetica", "normal");
     doc.text("A Taste of Home, Away from Home", pageWidth / 2, currentY, { align: "center" });
 
-    // Strong Divider Line
     currentY += 3;
     doc.setLineWidth(0.3);
     doc.line(margin, currentY, pageWidth - margin, currentY);
 
-    // --- Order Details Section ---
     currentY += 5;
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
@@ -1927,7 +1608,6 @@ function printOrderReceipt(orderId) {
     doc.text(`Customer: ${order.customerName}`, margin, currentY);
     doc.text(`Time: ${order.time}`, pageWidth - margin, currentY, { align: "right" });
 
-    // --- Table Header ---
     currentY += 6;
     doc.setFont("helvetica", "bold");
     doc.text("SL", margin, currentY);
@@ -1935,12 +1615,10 @@ function printOrderReceipt(orderId) {
     doc.text("QTY", pageWidth - 20, currentY, { align: "right" });
     doc.text("AMT", pageWidth - margin, currentY, { align: "right" });
 
-    // Header Bottom Line
     currentY += 2;
     doc.setLineWidth(0.2);
     doc.line(margin, currentY, pageWidth - margin, currentY);
 
-    // --- Items List ---
     currentY += 5;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
@@ -1954,7 +1632,6 @@ function printOrderReceipt(orderId) {
         doc.text(`${item.total}`, pageWidth - margin, currentY, { align: "right" });
         
         currentY += 4;
-        // Dotted line spacing thodi kam ki hai
         doc.setFontSize(6);
         doc.setTextColor(150);
         doc.text("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -", pageWidth / 2, currentY, { align: "center" });
@@ -1963,7 +1640,6 @@ function printOrderReceipt(orderId) {
         currentY += 3;
     });
 
-    // --- Summary Section ---
     currentY += 1;
     doc.setLineWidth(0.4);
     doc.line(pageWidth / 2, currentY, pageWidth - margin, currentY); 
@@ -1974,7 +1650,6 @@ function printOrderReceipt(orderId) {
     doc.text("GRAND TOTAL:", margin + 15, currentY);
     doc.text(`RS. ${order.total}`, pageWidth - margin, currentY, { align: "right" });
 
-    // --- Footer ---
     currentY += 8;
     doc.setFontSize(8);
     doc.setFont("helvetica", "italic");
@@ -1983,15 +1658,13 @@ function printOrderReceipt(orderId) {
     currentY += 4;
     doc.setFontSize(6);
     doc.setFont("helvetica", "normal");
-    doc.text("Powered by MR.T Cafe System", pageWidth / 2, currentY, { align: "center" });
+    doc.text("Powered by-@ditya..", pageWidth / 2, currentY, { align: "center" });
 
-    // Output for Printer
     doc.autoPrint();
     const blobUrl = doc.output('bloburl');
     window.open(blobUrl, '_blank');
 }
 
-    // Enter key for password and initial setup
     document.addEventListener('DOMContentLoaded', function() {
       if (!checkSession()) {
         document.getElementById('loginContainer').style.display = 'flex';
@@ -2003,10 +1676,8 @@ function printOrderReceipt(orderId) {
         }
       });
       
-      // Initialize category selector on load
       populateCategorySelector();
       
-      // Close edit bill modal when clicking outside
       document.getElementById('editBillModal').addEventListener('click', function(e) {
         if (e.target === this) {
           closeEditBillModal();
@@ -2015,17 +1686,14 @@ function printOrderReceipt(orderId) {
     });
     
 
-  // Function to update bill on server and dashboard
 function updateBill() {
     if (!currentlyEditingOrder) return;
     
-    // UI mein loading dikhane ke liye button disable karein
     const saveBtn = document.querySelector('#editBillModal .add-btn[onclick="updateBill()"]');
     const originalText = saveBtn.textContent;
     saveBtn.disabled = true;
     saveBtn.textContent = 'Updating... ⏳';
 
-    // Server par updated order data bhejein
     fetch(`${API_BASE_URL}/${currentlyEditingOrder.id}`, {
         method: 'PUT',
         headers: {
@@ -2034,7 +1702,6 @@ function updateBill() {
         body: JSON.stringify({
             items: currentlyEditingOrder.items,
             total: currentlyEditingOrder.total,
-            // Baaki fields ko as-is rakhein taaki wo delete na ho jayein
             confirmed: currentlyEditingOrder.confirmed,
             orderNumber: currentlyEditingOrder.orderNumber,
             customerName: currentlyEditingOrder.customerName,
@@ -2050,16 +1717,13 @@ function updateBill() {
         return response.json();
     })
     .then(updatedOrder => {
-        // 1. Local array (allOrders) mein data update karein
         const index = allOrders.findIndex(order => order.id === updatedOrder.id);
         if (index !== -1) {
             allOrders[index] = updatedOrder;
         }
         
-        // 2. Modal ko band karein aur variables clean karein
         closeEditBillModal();
         
-        // 3. Dashboard ka display aur stats refresh karein
         displayOrders();
         updateStats();
         
@@ -2070,10 +1734,8 @@ function updateBill() {
         alert('❌ Bill update nahi ho paya: ' + error.message);
     })
     .finally(() => {
-        // Button ko wapas normal karein
         saveBtn.disabled = false;
         saveBtn.textContent = originalText;
-        // Auto-refresh wapas start karein
         startAutoRefresh();
     });
 }
