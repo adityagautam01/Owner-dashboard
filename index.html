@@ -1578,56 +1578,57 @@ function printOrderReceipt(orderId) {
     const leftMargin = 5;
     const rightMargin = 75;
     const centerX = 40;
-    let y = 10;
+    let y = 8; // Top margin thoda kam
 
-    // === HEADER ===
-    doc.setFontSize(18);
+    // === HEADER - Font Chhota ===
+    doc.setFontSize(14); // Pehle 18 tha, ab 14
     doc.setFont('helvetica', 'bold');
     doc.text('MR.T CAFE', centerX, y, { align: 'center' });
     
-    y += 7;
-    doc.setFontSize(8);
+    y += 5; // Gap kam kiya
+    doc.setFontSize(6); // Pehle 8 tha, ab 6
     doc.setFont('helvetica', 'italic');
     doc.text('A Taste of Home, Away from Home', centerX, y, { align: 'center' });
     
     // Line
-    y += 5;
-    doc.setLineWidth(0.3);
+    y += 4;
+    doc.setLineWidth(0.2);
     doc.line(leftMargin, y, rightMargin, y);
     
-    // === ORDER ID - FIRST LINE ===
-    y += 8;
-    doc.setFontSize(12);
+    // === ORDER ID ===
+    y += 5;
+    doc.setFontSize(10); // Pehle 12 tha, ab 10
     doc.setFont('helvetica', 'bold');
     doc.text(`ORDER ID: ${order.orderNumber}`, leftMargin, y);
     
-    // === TYPE AND DATE - SECOND LINE ===
-    y += 8;
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
+    // === ORDER DETAILS - Ek Line Mein TYPE aur Date, Agli Line Mein Table aur Time ===
+    y += 5;
+    doc.setFontSize(8); // Pehle 10 tha, ab 8
+    doc.setFont('helvetica', 'normal');
+    
+    // First line: TYPE and Date
     doc.text(`TYPE: ${order.type}`, leftMargin, y);
     doc.text(`Date: ${order.date}`, rightMargin, y, { align: 'right' });
     
-    // === TABLE AND TIME - THIRD LINE ===
-    y += 7;
-    doc.setFont('helvetica', 'normal');
+    // Second line: Table and Time
+    y += 4;
     doc.text(`Table: ${order.tableNumber}`, leftMargin, y);
     doc.text(`Time: ${order.time}`, rightMargin, y, { align: 'right' });
     
-    // === CUSTOMER - FOURTH LINE ===
-    y += 7;
+    // Third line: Customer
+    y += 4;
     doc.text(`Customer: ${order.customerName}`, leftMargin, y);
     
-    // === TABLE HEADER ===
-    y += 8;
+    // === TABLE HEADER - Column positions exactly 80mm ke hisaab se ===
+    y += 6;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
+    doc.setFontSize(7); // Pehle 9 tha, ab 7
     
     // Column positions
-    const slX = leftMargin;
-    const descX = leftMargin + 8;
-    const qtyX = rightMargin - 18;
-    const amtX = rightMargin - 5;
+    const slX = leftMargin;              // SL column
+    const descX = leftMargin + 7;         // Description column
+    const qtyX = rightMargin - 18;        // QTY column
+    const amtX = rightMargin - 5;          // AMT column
     
     doc.text('SL', slX, y);
     doc.text('ITEM DESCRIPTION', descX, y);
@@ -1635,19 +1636,20 @@ function printOrderReceipt(orderId) {
     doc.text('AMT', amtX, y, { align: 'right' });
     
     // Line under header
-    y += 3;
-    doc.setLineWidth(0.2);
+    y += 2;
+    doc.setLineWidth(0.1);
     doc.line(leftMargin, y, rightMargin, y);
     
     // === ITEMS LIST ===
     doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7); // Items ka font bhi chhota
     
     order.items.forEach((item, index) => {
-        y += 6;
+        y += 5;
         const slNo = index + 1;
         let itemName = item.name;
         
-        // Shorten long names
+        // Agar naam lamba hai to chhota karo
         if (itemName.length > 16) {
             itemName = itemName.substring(0, 14) + '..';
         }
@@ -1655,29 +1657,32 @@ function printOrderReceipt(orderId) {
         doc.text(`${slNo}`, slX, y);
         doc.text(`${itemName}`, descX, y);
         doc.text(`${item.quantity}`, qtyX, y, { align: 'right' });
-        doc.text(`${item.total}`, amtX, y, { align: 'right' });
+        
+        // AMT with ₹ symbol
+        const amtText = `${item.total}`;
+        doc.text(amtText, amtX, y, { align: 'right' });
     });
     
-    // === GRAND TOTAL LINE ===
-    y += 8;
-    doc.setLineWidth(0.3);
+    // === LINE BEFORE GRAND TOTAL ===
+    y += 6;
+    doc.setLineWidth(0.2);
     doc.line(leftMargin, y, rightMargin, y);
     
     // === GRAND TOTAL ===
-    y += 8;
+    y += 6;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
+    doc.setFontSize(11); // Pehle 14 tha, ab 11
     doc.text(`GRAND TOTAL: RS. ${order.total}/-`, centerX, y, { align: 'center' });
     
     // === FOOTER ===
-    y += 10;
+    y += 7;
     doc.setFont('helvetica', 'italic');
-    doc.setFontSize(9);
+    doc.setFontSize(7); // Pehle 9 tha, ab 7
     doc.text('Thank You! Visit Again', centerX, y, { align: 'center' });
     
-    y += 6;
+    y += 4;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6);
+    doc.setFontSize(5);
     doc.text('Powered by @ditya..', centerX, y, { align: 'center' });
 
     // === PRINT ===
