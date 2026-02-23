@@ -1564,144 +1564,125 @@ function printOrderReceipt(orderId) {
     
     const { jsPDF } = window.jspdf;
     
-    // === EXACT HEIGHT CALCULATION - NO BLANK SPACE ===
-    // Header: 30mm, Footer: 12mm, Per item: 4mm
-    const headerHeight = 30;
-    const footerHeight = 12;
-    const perItemHeight = 4;
-    const totalHeight = headerHeight + (order.items.length * perItemHeight) + footerHeight;
+    // === FIXED HEIGHT for 210mm paper ===
+    const pageHeight = 210;
     
-    // Create PDF with 80mm width and exact height
+    // Create PDF with 80mm width and 210mm height
     const doc = new jsPDF({
         unit: 'mm',
-        format: [80, totalHeight],
+        format: [80, pageHeight],
         orientation: 'portrait'
     });
 
-    // Margins for 80mm paper
-    const leftMargin = 3;
-    const rightMargin = 77;
+    // Margins
+    const leftMargin = 5;
+    const rightMargin = 75;
     const centerX = 40;
-    let y = 3; // Start from top (NO blank space)
+    let y = 10;
 
-    // === HEADER SECTION ===
-    doc.setFontSize(14);
+    // === HEADER ===
+    doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
     doc.text('MR.T CAFE', centerX, y, { align: 'center' });
     
-    y += 4;
-    doc.setFontSize(6);
+    y += 7;
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'italic');
     doc.text('A Taste of Home, Away from Home', centerX, y, { align: 'center' });
     
-    // Thin line
-    y += 3;
-    doc.setLineWidth(0.1);
+    // Line
+    y += 5;
+    doc.setLineWidth(0.3);
     doc.line(leftMargin, y, rightMargin, y);
     
-    // === ORDER DETAILS (One line with ORDER ID and TYPE) ===
-    y += 4;
-    doc.setFontSize(8);
+    // === ORDER ID - FIRST LINE ===
+    y += 8;
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text(`ORDER ID: ${order.orderNumber}`, leftMargin, y);
-    doc.text(`TYPE: ${order.type}`, rightMargin, y, { align: 'right' });
     
-    // Second line: Table and Date
-    y += 4;
-    doc.setFont('helvetica', 'normal');
-    const tableLabel = order.type === 'Delivery' ? 'Hostel' : 'Table';
-    doc.text(`${tableLabel}: ${order.tableNumber}`, leftMargin, y);
+    // === TYPE AND DATE - SECOND LINE ===
+    y += 8;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`TYPE: ${order.type}`, leftMargin, y);
     doc.text(`Date: ${order.date}`, rightMargin, y, { align: 'right' });
     
-    // Third line: Customer and Time
-    y += 4;
-    doc.text(`Customer: ${order.customerName}`, leftMargin, y);
+    // === TABLE AND TIME - THIRD LINE ===
+    y += 7;
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Table: ${order.tableNumber}`, leftMargin, y);
     doc.text(`Time: ${order.time}`, rightMargin, y, { align: 'right' });
     
-    // Contact if exists
-    if (order.contactNumber && order.contactNumber !== 'N/A') {
-        y += 4;
-        doc.text(`Contact: ${order.contactNumber}`, leftMargin, y);
-    }
+    // === CUSTOMER - FOURTH LINE ===
+    y += 7;
+    doc.text(`Customer: ${order.customerName}`, leftMargin, y);
     
-    // === TABLE HEADER (SL | ITEM DESCRIPTION | QTY | AMT) ===
-    y += 5;
+    // === TABLE HEADER ===
+    y += 8;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    doc.text('SL', leftMargin, y);
-    doc.text('ITEM DESCRIPTION', leftMargin + 7, y);
-    doc.text('QTY', rightMargin - 15, y, { align: 'right' });
-    doc.text('AMT', rightMargin, y, { align: 'right' });
+    doc.setFontSize(9);
+    
+    // Column positions
+    const slX = leftMargin;
+    const descX = leftMargin + 8;
+    const qtyX = rightMargin - 18;
+    const amtX = rightMargin - 5;
+    
+    doc.text('SL', slX, y);
+    doc.text('ITEM DESCRIPTION', descX, y);
+    doc.text('QTY', qtyX, y, { align: 'right' });
+    doc.text('AMT', amtX, y, { align: 'right' });
     
     // Line under header
-    y += 2;
-    doc.setLineWidth(0.1);
+    y += 3;
+    doc.setLineWidth(0.2);
     doc.line(leftMargin, y, rightMargin, y);
     
     // === ITEMS LIST ===
     doc.setFont('helvetica', 'normal');
-    y += 4;
     
     order.items.forEach((item, index) => {
+        y += 6;
         const slNo = index + 1;
         let itemName = item.name;
         
-        // Adjust name for 80mm width
-        if (itemName.length > 18) {
-            itemName = itemName.substring(0, 16) + '..';
+        // Shorten long names
+        if (itemName.length > 16) {
+            itemName = itemName.substring(0, 14) + '..';
         }
         
-        // Print item row
-        doc.text(`${slNo}.`, leftMargin, y);
-        doc.text(itemName, leftMargin + 7, y);
-        doc.text(item.quantity.toString(), rightMargin - 15, y, { align: 'right' });
-        doc.text(`₹${item.total}`, rightMargin, y, { align: 'right' });
-        
-        y += 4;
-        
-        // Light dotted line between items
-        if (index < order.items.length - 1) {
-            doc.setDrawColor(200);
-            doc.setLineWidth(0.1);
-            doc.setLineDashPattern([1, 1], 0);
-            doc.line(leftMargin + 2, y - 2, rightMargin - 2, y - 2);
-            doc.setLineDashPattern([], 0);
-            doc.setDrawColor(0);
-        }
+        doc.text(`${slNo}`, slX, y);
+        doc.text(`${itemName}`, descX, y);
+        doc.text(`${item.quantity}`, qtyX, y, { align: 'right' });
+        doc.text(`${item.total}`, amtX, y, { align: 'right' });
     });
     
-    // === GRAND TOTAL ===
-    y += 2;
-    doc.setLineWidth(0.2);
+    // === GRAND TOTAL LINE ===
+    y += 8;
+    doc.setLineWidth(0.3);
     doc.line(leftMargin, y, rightMargin, y);
     
-    y += 5;
+    // === GRAND TOTAL ===
+    y += 8;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.text('GRAND TOTAL:', leftMargin + 10, y);
-    doc.text(`RS. ${order.total}`, rightMargin, y, { align: 'right' });
+    doc.setFontSize(14);
+    doc.text(`GRAND TOTAL: RS. ${order.total}/-`, centerX, y, { align: 'center' });
     
     // === FOOTER ===
-    y += 5;
+    y += 10;
     doc.setFont('helvetica', 'italic');
-    doc.setFontSize(7);
+    doc.setFontSize(9);
     doc.text('Thank You! Visit Again', centerX, y, { align: 'center' });
     
-    y += 3;
+    y += 6;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(5);
-    doc.text('Powered by MR.T Cafe System', centerX, y, { align: 'center' });
+    doc.setFontSize(6);
+    doc.text('Powered by @ditya..', centerX, y, { align: 'center' });
 
-    // === PRINT - NO BLANK PAGE ===
+    // === PRINT ===
     doc.autoPrint();
-    
-    // Generate PDF and open
-    const pdfOutput = doc.output('bloburl');
-    const printWindow = window.open(pdfOutput, '_blank');
-    
-    if (printWindow) {
-        printWindow.focus();
-    }
+    window.open(doc.output('bloburl'), '_blank');
 }
 
     document.addEventListener('DOMContentLoaded', function() {
