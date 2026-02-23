@@ -1564,13 +1564,71 @@ function printOrderReceipt(orderId) {
     
     const { jsPDF } = window.jspdf;
     
-    // === FIXED HEIGHT for 210mm paper ===
-    const pageHeight = 210;
+    // === SAFE DATE AND TIME FORMATTING ===
+    console.log("Order data:", order); // Debug ke liye
     
-    // Create PDF with 80mm width and 210mm height
+    // Date format: DD/MM/YY
+    let formattedDate = "23/02/26"; // Default fallback
+    
+    if (order.date) {
+        // Agar date already hai to use karo
+        formattedDate = order.date;
+        // Agar date mein pura year hai to last 2 digits lo
+        if (formattedDate.includes('2026')) {
+            formattedDate = formattedDate.replace('2026', '26');
+        } else if (formattedDate.includes('2025')) {
+            formattedDate = formattedDate.replace('2025', '25');
+        } else if (formattedDate.includes('2024')) {
+            formattedDate = formattedDate.replace('2024', '24');
+        }
+    }
+    
+    // Time format: HH:MM AM/PM (seconds hatao)
+    let formattedTime = "01:20PM"; // Default fallback
+    
+    if (order.time) {
+        formattedTime = order.time;
+        // Seconds hatao agar hain to
+        if (formattedTime.includes(':')) {
+            const parts = formattedTime.split(':');
+            if (parts.length >= 2) {
+                const hour = parts[0];
+                const minute = parts[1];
+                // Check if seconds exist (third part)
+                let ampm = '';
+                if (formattedTime.includes('AM')) ampm = 'AM';
+                if (formattedTime.includes('PM')) ampm = 'PM';
+                
+                // Agar minute mein AM/PM hai to alag karo
+                if (minute.includes('AM') || minute.includes('PM')) {
+                    const minuteParts = minute.split(/(AM|PM)/);
+                    formattedTime = `${hour}:${minuteParts[0]}${minuteParts[1] || ampm}`;
+                } else {
+                    formattedTime = `${hour}:${minute}${ampm}`;
+                }
+            }
+        }
+    }
+    
+    // === EXACT HEIGHT CALCULATION ===
+    const headerHeight = 18;
+    const orderIdHeight = 6;
+    const typeDateTimeHeight = 8;
+    const tableCustomerHeight = 8;
+    const tableHeaderHeight = 8;
+    const perItemHeight = 5;
+    const totalItemsHeight = order.items.length * perItemHeight;
+    const grandTotalHeight = 10;
+    const footerHeight = 10;
+    
+    const exactHeight = headerHeight + orderIdHeight + typeDateTimeHeight + 
+                       tableCustomerHeight + tableHeaderHeight + totalItemsHeight + 
+                       grandTotalHeight + footerHeight + 5;
+    
+    // Create PDF with 80mm width
     const doc = new jsPDF({
         unit: 'mm',
-        format: [80, pageHeight],
+        format: [80, exactHeight],
         orientation: 'portrait'
     });
 
@@ -1578,15 +1636,15 @@ function printOrderReceipt(orderId) {
     const leftMargin = 5;
     const rightMargin = 75;
     const centerX = 40;
-    let y = 8; // Top margin thoda kam
+    let y = 5;
 
-    // === HEADER - Font Chhota ===
-    doc.setFontSize(14); // Pehle 18 tha, ab 14
+    // === HEADER ===
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.text('MR.T CAFE', centerX, y, { align: 'center' });
     
-    y += 5; // Gap kam kiya
-    doc.setFontSize(6); // Pehle 8 tha, ab 6
+    y += 5;
+    doc.setFontSize(6);
     doc.setFont('helvetica', 'italic');
     doc.text('A Taste of Home, Away from Home', centerX, y, { align: 'center' });
     
@@ -1595,40 +1653,34 @@ function printOrderReceipt(orderId) {
     doc.setLineWidth(0.2);
     doc.line(leftMargin, y, rightMargin, y);
     
-    // === ORDER ID ===
+    // === ORDER ID with # ===
     y += 5;
-    doc.setFontSize(10); // Pehle 12 tha, ab 10
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text(`ORDER ID: ${order.orderNumber}`, leftMargin, y);
+    doc.text(`ORDER ID: #${order.orderNumber}`, leftMargin, y);
     
-    // === ORDER DETAILS - Ek Line Mein TYPE aur Date, Agli Line Mein Table aur Time ===
+    // === TYPE and DATE - Ek line mein ===
     y += 5;
-    doc.setFontSize(8); // Pehle 10 tha, ab 8
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
+    doc.text(`TYPE: ${order.type || 'Dine-IN'}`, leftMargin, y);
+    doc.text(`Date: ${formattedDate}`, rightMargin, y, { align: 'right' });
     
-    // First line: TYPE and Date
-    doc.text(`TYPE: ${order.type}`, leftMargin, y);
-    doc.text(`Date: ${order.date}`, rightMargin, y, { align: 'right' });
-    
-    // Second line: Table and Time
+    // === TABLE and TIME - Ek line mein ===
     y += 4;
-    doc.text(`Table: ${order.tableNumber}`, leftMargin, y);
-    doc.text(`Time: ${order.time}`, rightMargin, y, { align: 'right' });
+    doc.text(`Table: ${order.tableNumber || '5'}`, leftMargin, y);
+    doc.text(`Time: ${formattedTime}`, rightMargin, y, { align: 'right' });
     
-    // Third line: Customer
-    y += 4;
-    doc.text(`Customer: ${order.customerName}`, leftMargin, y);
-    
-    // === TABLE HEADER - Column positions exactly 80mm ke hisaab se ===
+    // === TABLE HEADER ===
     y += 6;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7); // Pehle 9 tha, ab 7
+    doc.setFontSize(7);
     
     // Column positions
-    const slX = leftMargin;              // SL column
-    const descX = leftMargin + 7;         // Description column
-    const qtyX = rightMargin - 18;        // QTY column
-    const amtX = rightMargin - 5;          // AMT column
+    const slX = leftMargin;
+    const descX = leftMargin + 7;
+    const qtyX = rightMargin - 18;
+    const amtX = rightMargin - 5;
     
     doc.text('SL', slX, y);
     doc.text('ITEM DESCRIPTION', descX, y);
@@ -1642,12 +1694,12 @@ function printOrderReceipt(orderId) {
     
     // === ITEMS LIST ===
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7); // Items ka font bhi chhota
+    doc.setFontSize(7);
     
     order.items.forEach((item, index) => {
         y += 5;
         const slNo = index + 1;
-        let itemName = item.name;
+        let itemName = item.name || 'Item';
         
         // Agar naam lamba hai to chhota karo
         if (itemName.length > 16) {
@@ -1656,28 +1708,24 @@ function printOrderReceipt(orderId) {
         
         doc.text(`${slNo}`, slX, y);
         doc.text(`${itemName}`, descX, y);
-        doc.text(`${item.quantity}`, qtyX, y, { align: 'right' });
-        
-        // AMT with ₹ symbol
-        const amtText = `${item.total}`;
-        doc.text(amtText, amtX, y, { align: 'right' });
+        doc.text(`${item.quantity || 1}`, qtyX, y, { align: 'right' });
+        doc.text(`₹${item.total || 0}`, amtX, y, { align: 'right' });
     });
     
-    // === LINE BEFORE GRAND TOTAL ===
-    y += 6;
+    // === GRAND TOTAL ===
+    y += 7;
     doc.setLineWidth(0.2);
     doc.line(leftMargin, y, rightMargin, y);
     
-    // === GRAND TOTAL ===
     y += 6;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11); // Pehle 14 tha, ab 11
-    doc.text(`GRAND TOTAL: RS. ${order.total}/-`, centerX, y, { align: 'center' });
+    doc.setFontSize(11);
+    doc.text(`GRAND TOTAL: RS. ${order.total || 0}/-`, centerX, y, { align: 'center' });
     
     // === FOOTER ===
-    y += 7;
+    y += 6;
     doc.setFont('helvetica', 'italic');
-    doc.setFontSize(7); // Pehle 9 tha, ab 7
+    doc.setFontSize(7);
     doc.text('Thank You! Visit Again', centerX, y, { align: 'center' });
     
     y += 4;
