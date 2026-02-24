@@ -1611,7 +1611,7 @@ function printOrderReceipt(orderId) {
     y += 4;
     doc.setFontSize(9); // Pehle 10 tha, ab 9
     doc.setFont('helvetica', 'bold');
-    doc.text(`ORDER ID: 00${order.orderNumber}`, leftMargin, y);
+    doc.text(`ORDER ID: #${order.orderNumber}`, leftMargin, y);
     
     // === TYPE and DATE - Ek line mein (Time ka second hata diya) ===
     y += 4;
@@ -1691,7 +1691,7 @@ function printOrderReceipt(orderId) {
         doc.text(`${slNo}`, slX, y);
         doc.text(`${itemName}`, descX, y);
         doc.text(`${item.quantity}`, qtyX, y, { align: 'right' });
-        doc.text(`${item.total}`, amtX, y, { align: 'right' });
+        doc.text(`₹${item.total}`, amtX, y, { align: 'right' });
     });
     
     // === GRAND TOTAL ===
@@ -1708,7 +1708,7 @@ function printOrderReceipt(orderId) {
     y += 5;
     doc.setFont('helvetica', 'italic');
     doc.setFontSize(6); // Pehle 7 tha, ab 6
-    doc.text('Powered by @ditya..', centerX, y, { align: 'center' });
+    doc.text('Thank You! Visit Again', centerX, y, { align: 'center' });
     
     y += 3;
     doc.setFont('helvetica', 'normal');
