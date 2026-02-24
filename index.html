@@ -1565,104 +1565,84 @@ function printOrderReceipt(orderId) {
     const { jsPDF } = window.jspdf;
     
     // === EXACT HEIGHT CALCULATION ===
-    const headerHeight = 16;      // Cafe name + tagline + line
-    const orderIdHeight = 5;      // ORDER ID
-    const typeDateTimeHeight = 8; // TYPE, Date line
-    const tableTimeHeight = 8;    // Table, Time line
+    const headerHeight = 18;      // Cafe name + tagline
+    const orderIdHeight = 6;      // ORDER ID
+    const typeDateHeight = 5;     // TYPE and Date line
+    const tableTimeHeight = 5;    // Table and Time line
     const tableHeaderHeight = 7;  // Table header
-    const perItemHeight = 5;      // Har item ke liye height
+    const perItemHeight = 5.5;    // Har item ke liye height
     const totalItemsHeight = order.items.length * perItemHeight;
-    const grandTotalHeight = 10;  // GRAND TOTAL
-    const footerHeight = 9;       // Thank You + Powered by
+    const grandTotalHeight = 8;   // GRAND TOTAL
+    const footerHeight = 6;       // Powered by
     
-    const exactHeight = headerHeight + orderIdHeight + typeDateTimeHeight + 
-                       tableTimeHeight + tableHeaderHeight + totalItemsHeight + 
-                       grandTotalHeight + footerHeight + 3;
+    const exactHeight = headerHeight + orderIdHeight + typeDateHeight + 
+                       tableTimeHeight + tableHeaderHeight + 
+                       totalItemsHeight + grandTotalHeight + footerHeight + 5;
     
-    // Create PDF with 78mm width (XP-80C compatible)
+    // Create PDF with 80mm width
     const doc = new jsPDF({
         unit: 'mm',
-        format: [78, exactHeight],
+        format: [80, exactHeight],
         orientation: 'portrait'
     });
 
-    // Margins for 78mm paper
-    const leftMargin = 4;
-    const rightMargin = 74; // 78 - 4
-    const centerX = 39;
-    let y = 4; // Start from top
+    // Margins
+    const leftMargin = 5;
+    const rightMargin = 75;
+    const centerX = 40;
+    let y = 5;
 
-    // === HEADER - Font Size Kam ===
-    doc.setFontSize(12); // Pehle 14 tha, ab 12
+    // === HEADER ===
+    doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.text('MR.T CAFE', centerX, y, { align: 'center' });
     
-    y += 4;
-    doc.setFontSize(5); // Pehle 6 tha, ab 5
+    y += 6;
+    doc.setFontSize(7);
     doc.setFont('helvetica', 'italic');
     doc.text('A Taste of Home, Away from Home', centerX, y, { align: 'center' });
     
-    // Line
-    y += 3;
-    doc.setLineWidth(0.2);
-    doc.line(leftMargin, y, rightMargin, y);
+    y += 4;
     
     // === ORDER ID ===
-    y += 4;
-    doc.setFontSize(9); // Pehle 10 tha, ab 9
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text(`ORDER ID: #${order.orderNumber}`, leftMargin, y);
+    doc.text(`ORDER ID: ${order.orderNumber}`, leftMargin, y);
     
-    // === TYPE and DATE - Ek line mein (Time ka second hata diya) ===
-    y += 4;
-    doc.setFontSize(7); // Pehle 8 tha, ab 7
+    // === TYPE and DATE - Ek line mein (FIXED: Date ke liye extra space) ===
+    y += 5;
     doc.setFont('helvetica', 'normal');
-    
-    // Date fix: sirf 26 rakho, 20026 nahi
-    let displayDate = order.date;
-    if (displayDate && displayDate.length > 8) {
-        displayDate = displayDate.substring(0, 8); // 23/02/26
-    }
-    
+    doc.setFontSize(9);
     doc.text(`TYPE: ${order.type}`, leftMargin, y);
-    doc.text(`Date: ${displayDate}`, rightMargin, y, { align: 'right' });
     
-    // === TABLE and TIME - Ek line mein (Time se second hata diya) ===
-    y += 4;
-    
-    // Time se second hatana (HH:MM format)
-    let displayTime = order.time;
-    if (displayTime && displayTime.includes(':')) {
-        const timeParts = displayTime.split(':');
-        if (timeParts.length >= 2) {
-            displayTime = `${timeParts[0]}:${timeParts[1]}`; // Sirf hour:minute
-            // AM/PM add karo agar hai to
-            if (displayTime.includes(' ')) {
-                const spaceParts = displayTime.split(' ');
-                if (spaceParts.length >= 2) {
-                    displayTime = `${spaceParts[0]} ${spaceParts[1]}`;
-                }
-            }
-        }
+    // Date format fix - Poora date dikhao
+    let displayDate = order.date;
+    // Ensure date is properly formatted
+    if (displayDate && displayDate.length > 0) {
+        // Already in correct format, just display as is
     }
+    // Date ko right margin se thoda pehle rakho taake complete dikhe
+    doc.text(`Date: ${displayDate}`, rightMargin - 2, y, { align: 'right' });
     
+    // === TABLE and TIME - Ek line mein (FIXED: Time ke liye extra space) ===
+    y += 5;
     doc.text(`Table: ${order.tableNumber}`, leftMargin, y);
-    doc.text(`Time: ${displayTime}`, rightMargin, y, { align: 'right' });
     
-    // === CUSTOMER - Alag line mein ===
-    y += 4;
-    doc.text(`Customer: ${order.customerName}`, leftMargin, y);
+    // Time format fix - Poora time dikhao
+    let displayTime = order.time;
+    // Time ko right margin se thoda pehle rakho
+    doc.text(`Time: ${displayTime}`, rightMargin - 2, y, { align: 'right' });
     
     // === TABLE HEADER ===
-    y += 5;
+    y += 6;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6); // Pehle 7 tha, ab 6
+    doc.setFontSize(8);
     
-    // Column positions for 78mm
+    // Column positions - adjusted for better spacing
     const slX = leftMargin;
-    const descX = leftMargin + 6;
-    const qtyX = rightMargin - 17;
-    const amtX = rightMargin - 4;
+    const descX = leftMargin + 7;      // Thoda left shift kiya
+    const qtyX = rightMargin - 20;      // QTY column
+    const amtX = rightMargin - 5;       // AMT column
     
     doc.text('SL', slX, y);
     doc.text('ITEM DESCRIPTION', descX, y);
@@ -1676,44 +1656,35 @@ function printOrderReceipt(orderId) {
     
     // === ITEMS LIST ===
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6);
+    doc.setFontSize(8);
     
     order.items.forEach((item, index) => {
-        y += 4.5;
+        y += 5.5;
         const slNo = index + 1;
         let itemName = item.name;
-        
-        // Agar naam lamba hai to chhota karo (78mm ke hisaab se)
-        if (itemName.length > 15) {
-            itemName = itemName.substring(0, 13) + '..';
-        }
         
         doc.text(`${slNo}`, slX, y);
         doc.text(`${itemName}`, descX, y);
         doc.text(`${item.quantity}`, qtyX, y, { align: 'right' });
-        doc.text(`₹${item.total}`, amtX, y, { align: 'right' });
+        doc.text(`${item.total}`, amtX, y, { align: 'right' });
     });
     
-    // === GRAND TOTAL ===
+    // === LINE BEFORE GRAND TOTAL ===
     y += 6;
     doc.setLineWidth(0.2);
     doc.line(leftMargin, y, rightMargin, y);
     
+    // === GRAND TOTAL ===
     y += 5;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10); // Pehle 11 tha, ab 10
+    doc.setFontSize(11);
     doc.text(`GRAND TOTAL: RS. ${order.total}/-`, centerX, y, { align: 'center' });
     
     // === FOOTER ===
-    y += 5;
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(6); // Pehle 7 tha, ab 6
-    doc.text('Thank You! Visit Again', centerX, y, { align: 'center' });
-    
-    y += 3;
+    y += 6;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(4);
-    doc.text('Powered by @ditya..', centerX, y, { align: 'center' });
+    doc.setFontSize(7);
+    doc.text('Powered by @ditya...', centerX, y, { align: 'center' });
 
     // === PRINT ===
     doc.autoPrint();
