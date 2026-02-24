@@ -1565,18 +1565,19 @@ function printOrderReceipt(orderId) {
     const { jsPDF } = window.jspdf;
     
     // === EXACT HEIGHT CALCULATION ===
-    const headerHeight = 18;      // Cafe name + tagline
-    const orderIdHeight = 6;      // ORDER ID
-    const typeDateHeight = 5;     // TYPE and Date line
-    const tableTimeHeight = 5;    // Table and Time line
-    const tableHeaderHeight = 7;  // Table header
+    const headerHeight = 22;      // Cafe name + tagline + line
+    const orderIdHeight = 7;      // ORDER ID
+    const typeDateHeight = 6;     // TYPE and Date line
+    const tableTimeHeight = 6;    // Table and Time line
+    const customerHeight = 5;     // Customer line
+    const tableHeaderHeight = 8;  // Table header
     const perItemHeight = 5.5;    // Har item ke liye height
     const totalItemsHeight = order.items.length * perItemHeight;
-    const grandTotalHeight = 8;   // GRAND TOTAL
-    const footerHeight = 6;       // Powered by
+    const grandTotalHeight = 10;  // GRAND TOTAL
+    const footerHeight = 8;       // Thank You + Powered by
     
     const exactHeight = headerHeight + orderIdHeight + typeDateHeight + 
-                       tableTimeHeight + tableHeaderHeight + 
+                       tableTimeHeight + customerHeight + tableHeaderHeight + 
                        totalItemsHeight + grandTotalHeight + footerHeight + 5;
     
     // Create PDF with 80mm width
@@ -1586,9 +1587,13 @@ function printOrderReceipt(orderId) {
         orientation: 'portrait'
     });
 
-    // Margins
+    // Margins - Fixed positions for perfect alignment
     const leftMargin = 5;
     const rightMargin = 75;
+    
+    // Fixed positions for date and time - 48mm from left (enough space)
+    const dateTimeX = 48; // 48mm from left margin
+    
     const centerX = 40;
     let y = 5;
 
@@ -1603,46 +1608,50 @@ function printOrderReceipt(orderId) {
     doc.text('A Taste of Home, Away from Home', centerX, y, { align: 'center' });
     
     y += 4;
+    doc.setLineWidth(0.2);
+    doc.line(leftMargin, y, rightMargin, y);
     
     // === ORDER ID ===
+    y += 6;
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text(`ORDER ID: ${order.orderNumber}`, leftMargin, y);
     
-    // === TYPE and DATE - Ek line mein (FIXED: Date ke liye extra space) ===
-    y += 5;
+    // === TYPE and DATE - Ek line mein (FIXED POSITION) ===
+    y += 6;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.text(`TYPE: ${order.type}`, leftMargin, y);
     
-    // Date format fix - Poora date dikhao
+    // Date - Fixed position at 48mm, left aligned
     let displayDate = order.date;
-    // Ensure date is properly formatted
-    if (displayDate && displayDate.length > 0) {
-        // Already in correct format, just display as is
-    }
-    // Date ko right margin se thoda pehle rakho taake complete dikhe
-    doc.text(`Date: ${displayDate}`, rightMargin - 2, y, { align: 'right' });
+    doc.text(`Date: ${displayDate}`, dateTimeX, y, { align: 'left' });
     
-    // === TABLE and TIME - Ek line mein (FIXED: Time ke liye extra space) ===
-    y += 5;
+    // === TABLE and TIME - Ek line mein (FIXED POSITION) ===
+    y += 6;
     doc.text(`Table: ${order.tableNumber}`, leftMargin, y);
     
-    // Time format fix - Poora time dikhao
+    // Time - Fixed position at 48mm, left aligned
     let displayTime = order.time;
-    // Time ko right margin se thoda pehle rakho
-    doc.text(`Time: ${displayTime}`, rightMargin - 2, y, { align: 'right' });
+    doc.text(`Time: ${displayTime}`, dateTimeX, y, { align: 'left' });
+    
+    // === CUSTOMER - Alag line ===
+    y += 6;
+    doc.text(`Customer: ${order.customerName}`, leftMargin, y);
+    
+    // === Extra line before table ===
+    y += 2;
     
     // === TABLE HEADER ===
-    y += 6;
+    y += 3;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
     
-    // Column positions - adjusted for better spacing
+    // Column positions for 80mm paper
     const slX = leftMargin;
-    const descX = leftMargin + 7;      // Thoda left shift kiya
-    const qtyX = rightMargin - 20;      // QTY column
-    const amtX = rightMargin - 5;       // AMT column
+    const descX = leftMargin + 8;
+    const qtyX = rightMargin - 18;
+    const amtX = rightMargin - 5;
     
     doc.text('SL', slX, y);
     doc.text('ITEM DESCRIPTION', descX, y);
@@ -1666,25 +1675,34 @@ function printOrderReceipt(orderId) {
         doc.text(`${slNo}`, slX, y);
         doc.text(`${itemName}`, descX, y);
         doc.text(`${item.quantity}`, qtyX, y, { align: 'right' });
-        doc.text(`${item.total}`, amtX, y, { align: 'right' });
+        
+        // AMT - with proper formatting
+        if (item.total && item.total > 0) {
+            doc.text(`${item.total}`, amtX, y, { align: 'right' });
+        }
     });
     
     // === LINE BEFORE GRAND TOTAL ===
-    y += 6;
+    y += 7;
     doc.setLineWidth(0.2);
     doc.line(leftMargin, y, rightMargin, y);
     
     // === GRAND TOTAL ===
-    y += 5;
+    y += 6;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
     doc.text(`GRAND TOTAL: RS. ${order.total}/-`, centerX, y, { align: 'center' });
     
     // === FOOTER ===
     y += 6;
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8);
+    doc.text('Thank You! Visit Again', centerX, y, { align: 'center' });
+    
+    y += 4;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.text('Powered by @ditya...', centerX, y, { align: 'center' });
+    doc.setFontSize(6);
+    doc.text('Powered by @ditya..', centerX, y, { align: 'center' });
 
     // === PRINT ===
     doc.autoPrint();
